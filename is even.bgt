@@ -1,0 +1,21 @@
+bool is_even(int number)
+{
+    /*
+        returns true if the number is even, false if it is odd.
+        Gets the division by 2 of the number passed as a value for the function. If it is 0, the number is even.
+    */
+    if(number % 2 == 0)return true;
+    return false;
+}
+void main()
+{
+    //checks if number 10 is even.
+    if(is_even(10))
+    {
+        alert("result", "yes. This number is even.");
+    }
+    else
+    {
+        alert("Result", "This number is odd.");
+    }
+}
