@@ -1,8 +1,8 @@
-bool is_even(int number)
+    bool is_even(int number)
 {
     /*
         returns true if the number is even, false if it is odd.
-        Gets the division by 2 of the number passed as a value for the function. If it is 0, the number is even.
+        Gets the remainder of the division by two of the number passed by the function. If it is 0, the number is even.
     */
     if(number % 2 == 0)return true;
     return false;
@@ -18,4 +18,4 @@ void main()
     {
         alert("Result", "This number is odd.");
     }
-}
+}   
