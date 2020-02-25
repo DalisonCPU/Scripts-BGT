@@ -126,7 +126,7 @@ if(dificuldade==1)velpc=1000;
 if(dificuldade==2)velpc=900;
 if(dificuldade==3)velpc=600;
 if(dificuldade==4)velpc=500;
-else velpc=200;
+else velpc=140;
 pc.y=12;
 jogador.y=1;
 while(true){
@@ -223,6 +223,9 @@ play(sexo1+"13");
 menu();
 break;
 }
+pontospc=0;
+pontosv=0;
+definido=false;
 set++;
 if(set==2)play(sexo1+"5");
 else play(sexo1+"6");
@@ -251,6 +254,9 @@ break;
 set++;
 if(set==2)play(sexo1+"5");
 else play(sexo1+"6");
+pontospc=0;
+pontosv=0;
+definido=false;
 }
 else definido=false;
 }
