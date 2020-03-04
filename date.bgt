@@ -1,0 +1,26 @@
+void main(){
+alert("Date and time", retornadata("dd/mm/aaaa HH:MM:SS"));
+exit();
+}
+string retornadata(string formato){
+string dia, mez, ano, hora, minuto, segundo;
+dia=DATE_DAY;
+if(DATE_DAY<10)dia="0"+dia;
+mez=DATE_MONTH;
+if(DATE_MONTH<10)mez="0"+mez;
+ano=DATE_YEAR;
+hora=TIME_HOUR;
+if(TIME_HOUR<10)hora="0"+hora;
+minuto=TIME_MINUTE;
+if(TIME_MINUTE<10)minuto="0"+minuto;
+segundo=TIME_SECOND;
+if(TIME_SECOND<10)segundo="0"+segundo;
+string final=formato;
+final=string_replace(final, "dd", dia, false);
+final=string_replace(final, "mm", mez, false);
+final=string_replace(final, "aaaa", ano, false);
+final=string_replace(final, "HH", hora, false);
+final=string_replace(final, "MM", minuto, false);
+final=string_replace(final, "SS", segundo, false);
+return final;
+}
