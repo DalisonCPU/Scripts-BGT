@@ -1,3 +1,10 @@
 void fale(string msg){
 screen_reader_speak(NVDA, msg);
 }
+string linear(string[] a){
+string final;
+for(uint i=0;i<a.length();i++){
+final+=(a[i]);
+}
+return final;
+}

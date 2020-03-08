@@ -3,6 +3,7 @@
 sound_pool p;
 string palavra, l;
 string[] palavraemlista, letrasrepetidas;
+int perdeu;
 void main(){
 show_game_window("Jogo da forca!");
 wait(500);
@@ -14,6 +15,7 @@ palavraemlista.resize(0);
 letrasrepetidas.resize(0);
 }
 void jogar(){
+limpar();
 file f;
 f.open("palavras.pal", "rb");
 string[] palavras=string_split(f.read(), "\r\n", false);
@@ -46,6 +48,7 @@ for(uint i=0;i<letrasrepetidas.length();i++){
 if(letrasrepetidas[i]==l){
 repetida=true;
 fale("Letra repetida bestinha!");
+anuncia=false;
 break;
 }
 }
@@ -56,11 +59,13 @@ for(uint i=0;i<palavra.length();i++){
 if(palavra[i]==l){
 palavraemlista[i]=l;
 encontradas=1;
+anuncia=false;
 }
 }
 if(encontradas<0){
-fale("por enquanto, só errou, depois faço o resto");
-anuncia=false;
+falaperdeu();
+perdeu++;
+if(perdeu<7)anuncia=false;
 }
 }
 }
@@ -73,4 +78,14 @@ if(palavraemlista[i]=="-")fale("espaço");
 else fale(palavraemlista[i]);
 wait(600);
 }
+}
+void falaperdeu(){
+if(perdeu==0)fale("Desenhei a cabecinha.");
+else if(perdeu==1)fale("Desenhei o pescocinho.");
+else if(perdeu==2)fale("Desenhei o tronquinho.");
+ else if(perdeu==3)fale("Desenhei o bracinho direito.");
+else if(perdeu==4)fale("Desenhei o bracinho esquerdo.");
+else if(perdeu==5)fale("Desenhei a perninha direita.");
+else if(perdeu==6)fale("Desenhei a perninha esquerda.");
+else if(perdeu==7)fale("Você foi enforcado!");
 }
