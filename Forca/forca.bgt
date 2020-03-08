@@ -3,7 +3,7 @@
 sound_pool p;
 string palavra, l;
 string[] palavraemlista, letrasrepetidas;
-int perdeu;
+int perdeu=-1;
 void main(){
 show_game_window("Jogo da forca!");
 wait(500);
@@ -13,7 +13,8 @@ void limpar(){
 palavra="";
 palavraemlista.resize(0);
 letrasrepetidas.resize(0);
-perdeu=0;
+perdeu=-1;
+l="";
 }
 void jogar(){
 limpar();
@@ -41,7 +42,8 @@ anuncia=false;
 continue;
 }
 if(!string_is_alphanumeric(l)){
-fale("Mas isso não é uma letra, filho da puta.");
+fale("Mas isso não é uma letra!");
+anuncia=false;
 continue;
 }
 bool repetida=false;
@@ -64,19 +66,42 @@ anuncia=false;
 }
 }
 if(encontradas<0){
+if(perdeu<7)perdeu++;
 falaperdeu();
-perdeu++;
+wait(600);
 if(perdeu==7){
+falapalavra();
+fale("quer jogar de novo?");
+while(true){
+if(key_pressed(KEY_S)){
+fale("ok, vamos lá de novo!");
 jogar();
+break;
+}
+if(key_pressed(KEY_N)){
+fale("ok, tchau então!");
+break;
+}
+}
 break;
 }
 else anuncia=false;
 }
 else{
 if(linear(palavraemlista)==palavra){
-fale("Você ganhou!");
-wait(1000);
+falapalavra();
+fale("Você ganhou! A palavra era essa mesmo! A palavra era: "+palavra+". Quer jogar de novo?");
+while(true){
+if(key_pressed(KEY_S)){
+fale("ok, vamos lá de novo!");
 jogar();
+break;
+}
+if(key_pressed(KEY_N)){
+fale("ok, tchau então!");
+break;
+}
+}
 break;
 }
 else anuncia=false;
@@ -85,7 +110,7 @@ else anuncia=false;
 }
 }
 void falapalavra(){
-fale("A palavra tem "+palavra.length()+" letras.");
+if(perdeu<7&&linear(palavraemlista)!=palavra)fale("A palavra tem "+palavra.length()+" letras.");
 wait(1200);
 for(uint i=0;i<palavraemlista.length();i++){
 if(palavraemlista[i]=="-")fale("espaço");
@@ -101,5 +126,5 @@ else if(perdeu==2)fale("Desenhei o tronquinho.");
 else if(perdeu==4)fale("Desenhei o bracinho esquerdo.");
 else if(perdeu==5)fale("Desenhei a perninha direita.");
 else if(perdeu==6)fale("Desenhei a perninha esquerda.");
-else if(perdeu==7)fale("Você foi enforcado!");
+else if(perdeu==7)fale("Você foi enforcado! A palavra era: "+palavra);
 }
