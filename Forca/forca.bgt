@@ -132,7 +132,7 @@ if(perdeu<7&&linear(palavraemlista)!=palavra)fale("A palavra tem "+palavra.lengt
 wait(1200);
 for(uint i=0;i<palavraemlista.length();i++){
 if(palavraemlista[i]=="-")fale("espaço");
-else fale(palavraemlista[i]);
+else falaletra(palavraemlista[i]);
 wait(600);
 }
 wait(600);
