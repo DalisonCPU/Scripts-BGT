@@ -1,0 +1,5 @@
+#include"sound_pool.bgt"
+sound_pool p;
+void main(){
+show_game_window("Jogo da forca");
+}
