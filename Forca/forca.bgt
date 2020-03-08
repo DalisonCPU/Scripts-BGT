@@ -1,5 +1,30 @@
 #include"sound_pool.bgt"
+#include "fale.bgt"
 sound_pool p;
+string palavra;
+string[] palavraemlista, letrasrepetidas;
 void main(){
-show_game_window("Jogo da forca");
+show_game_window("Jogo da forca!");
+wait(500);
+jogar();
+}
+void limpar(){
+palavra="";
+palavraemlista.resize(0);
+letrasrepetidas.resize(0);
+}
+void jogar(){
+file f;
+f.open("palavras.pal", "rb");
+string[] palavras=string_split(f.read(), "\r\n", false);
+f.close();
+palavra=palavras[random(0, palavras.length()-1)];
+palavraemlista.resize(palavra.length());
+for(uint i=0;i<palavraemlista.length();i++){
+palavraemlista[i]="-";
+}
+fale("A palavra tem "+palavra.length()+" letras. Pressione enter para começar o jogo.");
+while(!key_pressed(KEY_RETURN)){
+wait(5);
+}
 }
