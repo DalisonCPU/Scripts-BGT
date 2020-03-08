@@ -23,35 +23,54 @@ palavraemlista.resize(palavra.length());
 for(uint i=0;i<palavraemlista.length();i++){
 palavraemlista[i]="-";
 }
-fale("A palavra tem "+palavra.length()+" letras. Pressione enter para começar o jogo.");
-while(!key_pressed(KEY_RETURN)){
+bool anuncia=false;
+while(true){
 wait(5);
+if(key_pressed(KEY_ESCAPE))exit();
+if(!anuncia){
+anuncia=true;
+falapalavra();
 }
+l=get_characters();
+if(l!=""){
+if(l==" "){
+anuncia=false;
+continue;
+}
+if(!string_is_alphanumeric(l)){
+fale("Mas isso não é uma letra, filho da puta.");
+continue;
+}
+bool repetida=false;
+for(uint i=0;i<letrasrepetidas.length();i++){
+if(letrasrepetidas[i]==l){
+repetida=true;
+fale("Letra repetida bestinha!");
+break;
+}
+}
+if(repetida)continue;
+letrasrepetidas.insert_last(l);
+int encontradas=-1;
+for(uint i=0;i<palavra.length();i++){
+if(palavra[i]==l){
+palavraemlista[i]=l;
+encontradas=1;
+}
+}
+if(encontradas<0){
+fale("por enquanto, só errou, depois faço o resto");
+anuncia=false;
+}
+}
+}
+}
+void falapalavra(){
+fale("A palavra tem "+palavra.length()+" letras.");
+wait(1200);
 for(uint i=0;i<palavraemlista.length();i++){
 if(palavraemlista[i]=="-")fale("espaço");
 else fale(palavraemlista[i]);
 wait(600);
-}
-while(true){
-wait(5);
-l=get_characters();
-if(l!=""){
-letrasrepetidas.insert_last(l);
-int encontradas=0;
-for(uint i=0;i<palavra.length();i++){
-if(palavra[i]==l){
-encontradas++;
-palavraemlista[i]=l;
-fale("encontrou");
-l="";
-return;;
-}
-}
-if(encontradas==0){
-fale("por enquanto, só errou, depois faço o resto");
-l="";
-return;
-}
-}
 }
 }
