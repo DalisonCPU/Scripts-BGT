@@ -26,5 +26,15 @@ palavraemlista[i]="-";
 fale("A palavra tem "+palavra.length()+" letras. Pressione enter para começar o jogo.");
 while(!key_pressed(KEY_RETURN)){
 wait(5);
+timer t;
+for(uint i=0;i<palavraemlista.length();i++){
+if(t.elapsed==600){
+if(palavraemlista[i]=="-")fale("espaço");
+else fale(palavraemlista[i]);
+t.restart();
+continue;
+}
+}
+
 }
 }
