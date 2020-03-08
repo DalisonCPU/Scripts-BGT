@@ -1,4 +1,4 @@
-void fale_caractere(string letra, bool excluido=false)
+void falaletra(string letra)
 {
 if(letra==" ")
 fale("Espaço");
@@ -13,7 +13,7 @@ fale("c");
 else if(letra=="d")
 fale("d");
 else if(letra=="e")
-fale("e");
+fale(" é ");
 else if(letra=="f")
 fale("f");
 else if(letra=="g")
@@ -33,7 +33,7 @@ fale("m");
 else if(letra=="n")
 fale("n");
 else if(letra=="o")
-fale("o");
+fale(" ó");
 else if(letra=="p")
 fale("p");
 else if(letra=="q")
@@ -202,6 +202,4 @@ if(string_is_alphanumeric(letra))
 if(string_is_upper_case(letra))
 fale(letra+" Maiúsculo");
 }
-if(excluido==true)
-fale("excluído.");
 }
