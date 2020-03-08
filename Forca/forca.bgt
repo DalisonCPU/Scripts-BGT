@@ -1,4 +1,5 @@
 #include"sound_pool.bgt"
+#include "letras.bgt"
 #include "fale.bgt"
 sound_pool p;
 string palavra, l;
@@ -6,7 +7,7 @@ string[] palavraemlista, letrasrepetidas;
 int perdeu=-1;
 void main(){
 show_game_window("Jogo da forca!");
-wait(500);
+wait(600);
 jogar();
 }
 void limpar(){
@@ -15,6 +16,7 @@ palavraemlista.resize(0);
 letrasrepetidas.resize(0);
 perdeu=-1;
 l="";
+get_characters();
 }
 void jogar(){
 limpar();
@@ -28,6 +30,7 @@ for(uint i=0;i<palavraemlista.length();i++){
 palavraemlista[i]="-";
 }
 bool anuncia=false;
+wait(600);
 while(true){
 wait(5);
 if(key_pressed(KEY_ESCAPE))exit();
@@ -36,6 +39,7 @@ anuncia=true;
 falapalavra();
 }
 l=get_characters();
+falaletra(l);
 if(l!=""){
 if(l==" "){
 anuncia=false;
@@ -43,6 +47,7 @@ continue;
 }
 if(!string_is_alphanumeric(l)){
 fale("Mas isso não é uma letra!");
+wait(600);
 anuncia=false;
 continue;
 }
@@ -51,6 +56,7 @@ for(uint i=0;i<letrasrepetidas.length();i++){
 if(letrasrepetidas[i]==l){
 repetida=true;
 fale("Letra repetida bestinha!");
+wait(600);
 anuncia=false;
 break;
 }
@@ -62,17 +68,20 @@ for(uint i=0;i<palavra.length();i++){
 if(palavra[i]==l){
 palavraemlista[i]=l;
 encontradas=1;
+wait(600);
 anuncia=false;
 }
 }
 if(encontradas<0){
 if(perdeu<7)perdeu++;
+wait(600);
 falaperdeu();
 wait(600);
 if(perdeu==7){
 falapalavra();
 fale("quer jogar de novo?");
 while(true){
+wait(5);
 if(key_pressed(KEY_S)){
 fale("ok, vamos lá de novo!");
 jogar();
@@ -85,13 +94,18 @@ break;
 }
 break;
 }
-else anuncia=false;
+else
+{
+wait(600);
+anuncia=false;
+}
 }
 else{
 if(linear(palavraemlista)==palavra){
 falapalavra();
 fale("Você ganhou! A palavra era essa mesmo! A palavra era: "+palavra+". Quer jogar de novo?");
 while(true){
+wait(5);
 if(key_pressed(KEY_S)){
 fale("ok, vamos lá de novo!");
 jogar();
@@ -104,7 +118,11 @@ break;
 }
 break;
 }
-else anuncia=false;
+else
+{
+wait(600);
+anuncia=false;
+}
 }
 }
 }
@@ -117,6 +135,8 @@ if(palavraemlista[i]=="-")fale("espaço");
 else fale(palavraemlista[i]);
 wait(600);
 }
+wait(600);
+if(linear(palavraemlista)!=palavra&&perdeu<7)fale("que letra?");
 }
 void falaperdeu(){
 if(perdeu==0)fale("Desenhei a cabecinha.");

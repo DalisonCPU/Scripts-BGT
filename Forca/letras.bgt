@@ -1,0 +1,207 @@
+void fale_caractere(string letra, bool excluido=false)
+{
+if(letra==" ")
+fale("Espaço");
+else if(letra=="\r\n")
+fale("Linha em branco");
+else if(letra=="a")
+fale("a");
+else if(letra=="b")
+fale("b");
+else if(letra=="c")
+fale("c");
+else if(letra=="d")
+fale("d");
+else if(letra=="e")
+fale("e");
+else if(letra=="f")
+fale("f");
+else if(letra=="g")
+fale("g");
+else if(letra=="h")
+fale("h");
+else if(letra=="i")
+fale("i");
+else if(letra=="j")
+fale("j");
+else if(letra=="k")
+fale("k");
+else if(letra=="l")
+fale("l");
+else if(letra=="m")
+fale("m");
+else if(letra=="n")
+fale("n");
+else if(letra=="o")
+fale("o");
+else if(letra=="p")
+fale("p");
+else if(letra=="q")
+fale("q");
+else if(letra=="r")
+fale("r");
+else if(letra=="s")
+fale("s");
+else if(letra=="t")
+fale("t");
+else if(letra=="u")
+fale("u");
+else if(letra=="v")
+fale("v");
+else if(letra=="w")
+fale("w");
+else if(letra=="x")
+fale("x");
+else if(letra=="y")
+fale("y");
+else if(letra=="z")
+fale("z");
+else if(letra=="1")
+fale("1");
+else if(letra=="2")
+fale("2");
+else if(letra=="3")
+fale("3");
+else if(letra=="4")
+fale("4");
+else if(letra=="5")
+fale("5");
+else if(letra=="6")
+fale("6");
+else if(letra=="7")
+fale("7");
+else if(letra=="8")
+fale("8");
+else if(letra=="9")
+fale("9");
+else if(letra=="0")
+fale("0");
+else if(letra=="ã")
+fale("a til");
+else if(letra=="õ")
+fale("ó til");
+else if(letra=="á")
+fale("a agudo");
+else if(letra=="é")
+fale("é agudo");
+else if(letra=="í")
+fale("i agudo");
+else if(letra=="ó")
+fale("ó agudo");
+else if(letra=="ú")
+fale("u agudo");
+else if(letra=="â")
+fale("a circunflexo");
+else if(letra=="ê")
+fale("é circunflexo");
+else if(letra=="î")
+fale("i circunflexo");
+else if(letra=="ô")
+fale("ó circunflexo");
+else if(letra=="û")
+fale("u circunflexo");
+else if(letra=="ä")
+fale("a trema");
+else if(letra=="ë")
+fale("é trema");
+else if(letra=="ï")
+fale("i trema");
+else if(letra=="ö")
+fale("o trema");
+else if(letra=="ü")
+fale("u trema");
+else if(letra=="à")
+fale("a com crase");
+else if(letra=="è")
+fale("é com crase");
+else if(letra=="ì")
+fale("i com crase");
+else if(letra=="ò")
+fale("ó com crase");
+else if(letra=="ù")
+fale("u com crase");
+
+else if(letra=="~")
+fale("til");
+else if(letra=="^")
+fale("circunflexo");
+else if(letra=="´")
+fale("agudo");
+else if(letra=="`")
+fale("crase");
+else if(letra=="¨")
+fale("trema");
+else if(letra=="-")
+fale("Ifem ");
+else if(letra==".")
+fale("Ponto");
+else if(letra==",")
+fale("Vírgula");
+else if(letra=="@")
+fale("Arroba");
+else if(letra==">")
+fale("Maior que");
+else if(letra==");")
+fale("Ponto e vírgula");
+else if(letra==":")
+fale("Dois pontos");
+else if(letra=="'")
+fale("Apóstrofo");
+else if(letra=="<")
+fale("Menor que");
+else if(letra=="_")
+fale("Sublinhado");
+else if(letra=="+")
+fale("Mais");
+else if(letra=="=")
+fale("Igual");
+else if(letra=="!")
+fale("Exclamação");
+else if(letra=="\\")
+fale("Raiz ");
+else if(letra=="\\")
+fale("Barra invertida");
+else if(letra=="/")
+fale("Barra");
+else if(letra=="£")
+fale("Libras");
+else if(letra=="$")
+fale("Cifrão ");
+else if(letra=="%")
+fale("Porcento");
+else if(letra=="^")
+fale("Circunflexo ");
+else if(letra=="&")
+fale("É comercial");
+else if(letra=="*")
+fale("Asterisco");
+else if(letra=="(")
+fale("Abre parênteses");
+else if(letra==")")
+fale("Fecha parênteses");
+else if(letra=="[")
+fale("Abre colchetes");
+else if(letra=="]")
+fale("Fecha colchetes");
+else if(letra=="{")
+fale("Abre chaves");
+else if(letra=="}")
+fale("Fecha chaves");
+else if(letra=="|")
+fale("Barra vertical");
+else if(letra=="?")
+fale("Interrogação");
+else if(letra=="¬")
+fale("Negação");
+else if(letra=="#")
+fale("Sustenido");
+else if(letra=="ç")
+fale("secedilha");
+if(string_is_alphanumeric(letra))
+{
+if(string_is_upper_case(letra))
+fale(letra+" Maiúsculo");
+}
+if(excluido==true)
+fale("excluído.");
+}
