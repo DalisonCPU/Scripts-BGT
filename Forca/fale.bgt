@@ -1,0 +1,3 @@
+void fale(string msg){
+screen_reader_speak(NVDA, msg);
+}
