@@ -13,6 +13,7 @@ void limpar(){
 palavra="";
 palavraemlista.resize(0);
 letrasrepetidas.resize(0);
+perdeu=0;
 }
 void jogar(){
 limpar();
@@ -65,7 +66,20 @@ anuncia=false;
 if(encontradas<0){
 falaperdeu();
 perdeu++;
-if(perdeu<7)anuncia=false;
+if(perdeu==7){
+jogar();
+break;
+}
+else anuncia=false;
+}
+else{
+if(linear(palavraemlista)==palavra){
+fale("Você ganhou!");
+wait(1000);
+jogar();
+break;
+}
+else anuncia=false;
 }
 }
 }
