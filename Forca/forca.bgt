@@ -1,7 +1,7 @@
 #include"sound_pool.bgt"
 #include "fale.bgt"
 sound_pool p;
-string palavra;
+string palavra, l;
 string[] palavraemlista, letrasrepetidas;
 void main(){
 show_game_window("Jogo da forca!");
@@ -31,5 +31,27 @@ for(uint i=0;i<palavraemlista.length();i++){
 if(palavraemlista[i]=="-")fale("espaço");
 else fale(palavraemlista[i]);
 wait(600);
+}
+while(true){
+wait(5);
+l=get_characters();
+if(l!=""){
+letrasrepetidas.insert_last(l);
+int encontradas=0;
+for(uint i=0;i<palavra.length();i++){
+if(palavra[i]==l){
+encontradas++;
+palavraemlista[i]=l;
+fale("encontrou");
+l="";
+return;;
+}
+}
+if(encontradas==0){
+fale("por enquanto, só errou, depois faço o resto");
+l="";
+return;
+}
+}
 }
 }
