@@ -1,7 +1,5 @@
-#include"sound_pool.bgt"
 #include "letras.bgt"
 #include "fale.bgt"
-sound_pool p;
 string palavra, l;
 string[] palavraemlista, letrasrepetidas;
 int perdeu=-1;
