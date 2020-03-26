@@ -1,6 +1,8 @@
 #include"sound_pool.bgt"
 sound_pool p;
 vector anda;
+string[][] tabuleiro(3);
+int slot=-1;
 void main(){
 show_game_window("Jogo da velha");
 jogar();
@@ -21,7 +23,6 @@ if(key_pressed(KEY_N)){
 break;
 }
 }
-string[][] tabuleiro(3);
 for(uint i=0;i<tabuleiro.length();i++){
 tabuleiro[i].resize(3);
 }
@@ -30,9 +31,39 @@ for(uint i2=0;i2<tabuleiro[i].length();i2++){
 tabuleiro[i][i2]="-";
 }
 }
+anda.x=1;
+anda.y=1;
+bool pcjoga=pcinicia;
 while(true){
 wait(5);
+bool d=verificaganhou();
+if(d){
+jogar();
+break;
+}
+if(pcjoga){
+tocasom("jmicro");
+while(true){
+int l=random(0, 2);
+int c=random(0, 2);
+if(tabuleiro[l][c]=="-"){
+tabuleiro[l][c]="c";
+break;
+}
+}
+pcjoga=false;
+}
 if(key_pressed(KEY_ESCAPE))exit();
+if(key_pressed(KEY_RETURN)&&!pcjoga){
+if(tabuleiro[anda.x][anda.y]!="-"){
+tocasom("ocupado");
+}
+else{
+tabuleiro[anda.x][anda.y]="b";
+p.play_stationary("ploc.wav", false);
+pcjoga=true;
+}
+}
 if(key_pressed(KEY_UP)){
 anda.y++;
 if(anda.y>2)anda.y=2;
@@ -72,5 +103,41 @@ if(anda.y==0)nomesom=7;
 else if(anda.y==1)nomesom=8;
 else nomesom=9;
 }
-if(nomesom>-1)p.play_stationary(nomesom+".wav", false);
+if(nomesom>-1){
+tocasom(nomesom);
+string dado=tabuleiro[anda.x][anda.y];
+if(dado=="-")tocasom("vazia");
+else if(dado=="b")tocasom("bolinha");
+else if(dado=="c")tocasom("cruzinha");
+}
+}
+void tocasom(string som){
+sound s;
+s.load(som+".wav");
+s.play_wait();
+}
+bool verificaganhou(){
+int quantosnalinha1=0, quantosnalinha2=0;
+for(uint i=0;i<3;i++){
+quantosnalinha1=0;
+quantosnalinha2=0;
+for(uint i2=0;i2<3;i2++){
+if(tabuleiro[i][i2]=="b")quantosnalinha1++;
+if(tabuleiro[i][i2]=="c")quantosnalinha2++;
+}
+if(quantosnalinha1==3||quantosnalinha2==3)break;
+}
+if(tabuleiro[0][0]=="b"&&tabuleiro[1][0]=="b"&&tabuleiro[2][0]=="b"||tabuleiro[0][1]=="b"&&tabuleiro[1][1]=="b"&&tabuleiro[2][1]=="b"||tabuleiro[0][2]=="b"&&tabuleiro[1][2]=="b"&&tabuleiro[2][2]=="b")quantosnalinha1=3;
+else if(tabuleiro[0][0]=="c"&&tabuleiro[1][0]=="c"&&tabuleiro[2][0]=="c"||tabuleiro[0][1]=="c"&&tabuleiro[1][1]=="c"&&tabuleiro[2][1]=="c"||tabuleiro[0][2]=="c"&&tabuleiro[1][2]=="c"&&tabuleiro[2][2]=="c")quantosnalinha2=3;
+if(tabuleiro[0][0]=="b"&&tabuleiro[1][1]=="b"&&(tabuleiro[2][2]=="b"||tabuleiro[2][0]=="b")||tabuleiro[0][2]=="b"&&tabuleiro[1][1]=="b"&&(tabuleiro[2][2]=="b"||tabuleiro[2][0]=="b"))quantosnalinha1=3;
+if(tabuleiro[0][0]=="c"&&tabuleiro[1][1]=="c"&&(tabuleiro[2][2]=="c"||tabuleiro[2][0]=="c")||tabuleiro[0][2]=="c"&&tabuleiro[1][1]=="c"&&(tabuleiro[2][2]=="c"||tabuleiro[2][0]=="c"))quantosnalinha2=3;
+if(quantosnalinha1==3){
+tocasom("ganhou");
+return true;
+}
+else if(quantosnalinha2==3){
+tocasom("ganhei");
+return true;
+}
+return false;
 }
