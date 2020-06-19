@@ -26,12 +26,15 @@ else if(nandar==1)calculo=round((1.0/bpm)*60000, 2);
 else if(nandar==2)calculo=round((1.0/bpm)*60000/2, 2);
 else if(nandar==3)calculo=round((1.0/bpm)*60000/4, 2);
 if(t.elapsed>calculo&&tocando){
-if(ncompasso!=compasso){
+if(ncompasso<compasso){
 p.play_stationary(clock, false, false);
 ncompasso++;
 }
-else
-{
+else if(ncompasso>compasso){
+p.play_stationary(clock, false, false);
+ncompasso--;
+}
+else{
 p.play_stationary(click, false, false);
 ncompasso=1;
 }
@@ -46,10 +49,12 @@ void teclas(){
 if(key_pressed(KEY_ESCAPE))exit();
 if(key_pressed(KEY_LEFT)&&compasso>2){
 compasso--;
+//ncompasso=compasso;
 fale(compasso);
 }
 if(key_pressed(KEY_RIGHT)){
 compasso++;
+//ncompasso=compasso;
 fale(compasso);
 }
 if(key_pressed(KEY_UP)&&bpm<200){
