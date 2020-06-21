@@ -1,0 +1,60 @@
+/*
+*Classe para a tradução de jogos
+*Por DJT
+*Eu não me responsabiliso pelo uso do script. Use pela sua conta e risco.
+*/
+//Construção
+string arqid=DIRECTORY_APPDATA+"/Mega Dimensão/configs.ini";
+class parsed_data
+{
+private string[] linhas;
+private string[] valores;
+private string arquivo;
+private string texto;
+//Funções
+//Selecionar arquivo das traduções
+bool set_arquivo(string arquivo)
+{
+valores.resize(0);
+linhas.resize(0);
+this.arquivo=arquivo;
+file f;
+bool abrir=f.open(arquivo,"rb");
+if(!abrir){
+alert("Erro ao abrir arquivo de idioma.", "");
+return this.arquivo!="";
+}
+else
+{
+string d;
+d=f.read();
+string[] parseddata=string_split(d,"\r\n",true);
+for(int i=0; i<parseddata.length; i++)
+{
+string[] parseddata2=string_split(parseddata[i],"=",true);
+if(parseddata2.length!=2)
+continue;
+else
+{
+linhas.insert_last(parseddata2[0]);
+valores.insert_last(parseddata2[1]);
+}
+}
+}
+return this.arquivo!="";
+}
+string get_value(string linha)
+{
+if(linhas.find(linha)!=-1)
+return valores[linhas.find(linha)];
+else
+return linha;
+}
+}
+string selecionar(){
+menu();
+string[] arquivos=find_files("langs/*.lang");
+for(uint i=0;i<arquivos.length();i++){m.add_item_tts(string_replace(arquivos[i], ".lang", "", true), arquivos[i]);}
+int mres=m.run(pu.get_value("Selecione o arquivo de idioma que deseja usar."), true);
+return m.get_item_name(mres);
+}

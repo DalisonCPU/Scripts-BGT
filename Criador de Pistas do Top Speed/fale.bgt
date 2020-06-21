@@ -1,0 +1,46 @@
+/*
+*Funções para o uso do leitor ou fala sape
+*Escrita por DJT
+*Eu não me responsabilizo pelo uso do script. Use por sua conta e risco.
+*/
+tts_voice ttz;//objeto de voz
+int leitor_encontrado=0;//Nenhum leitor ainda
+bool fale(string text, bool interromper=false)//Falando sem interromper
+{
+if(leitor_encontrado==0)//Se nenhum leitor ainda
+leitor_encontrado=selecionar_leitor_automaticamente();//Encontra um leitor e coloca o número na variável leitor_encontrado
+if(leitor_encontrado==0)//Se for o número 0
+{
+if(interromper)//Se estiver interrompendo
+ttz.speak_interrupt(text);//Fala usando função interromper
+else
+ttz.speak(text);//Fala sem interromper
+}
+if(interromper)//Se interrompendo
+screen_reader_speak_interrupt(leitor_encontrado, text);//Fala com o leitor encontrado interrompendo
+else//fala sem interromper
+screen_reader_speak(leitor_encontrado, text);
+return true;//retorna
+}
+int selecionar_leitor_automaticamente()//função para selecionar leitor
+{
+if (screen_reader_is_running(1))
+{
+return 1;
+}
+if (screen_reader_is_running(3))
+{
+return 3;
+}
+if (screen_reader_is_running(4))
+{
+return 4;
+}
+else
+{
+return 0;
+}
+}
+void alerta(string t, string m){
+alert(pu.get_value(t), pu.get_value(m));
+}

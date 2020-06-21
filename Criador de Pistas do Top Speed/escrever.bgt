@@ -1,0 +1,233 @@
+/*
+*Função escrever
+*Escrita por DJT
+*Eu não me responsabilizo pelo uso do script. Use por sua conta e risco.
+*/
+string escrever(string msg)//String onde guarda a função escrever
+{
+string mensagem_final;
+get_characters();//Função interna para pegar caractéres digitados
+fale(pu.get_value(msg));//Função de include
+while(true)//Começa a verificação
+{
+string c=get_characters();//String c onde verifica caractéres digitados
+if(key_down(KEY_LCONTROL)&&key_pressed(KEY_V)||key_down(KEY_RCONTROL)&&key_pressed(KEY_V))//Se apertar ctrl v
+{
+if(clipboard_read_text()=="")//Área de trabalho vasia
+{
+fale("Á área de trabalho está vasia.");
+}
+else//Continuando
+{
+mensagem_final+=clipboard_read_text();//Adiciona à mensagem_final o texto da área de transferência
+fale("Texto colado.");
+}
+}
+if(c!="")//Se a variável c deixar de ser vasia
+{
+if(c==" ")//Se usar espaço
+{
+fale("espaço");
+}
+else if(c==".")//Ponto final
+{
+fale("ponto");
+}
+else if(c==",")//Vírgula
+{
+fale("vírgula");
+}
+else if(c=="-")//ifem
+{
+fale("menos");
+}
+else if(c=="_")//Sublinhado
+{
+fale("underline");
+}
+else if(c=="=")//igual
+{
+fale("igual");
+}
+else if(c=="`")//Sinal craze
+{
+fale("grave");
+}
+else if(c=="*")//Asterisco
+{
+fale("asterisco");
+}
+else
+{
+fale(c);
+}
+mensagem_final+=c;
+}
+if(key_pressed(KEY_BACK))
+{
+if(mensagem_final.length()>0)
+{
+string currentchar=mensagem_final[mensagem_final.length()-1];
+if(currentchar!="")
+{
+if(currentchar==" ")
+{
+fale("espaço");
+}
+else if(currentchar==".")
+{
+fale("ponto");
+}
+else if(currentchar==",")
+{
+fale("vírgula");
+}
+else if(currentchar=="-")
+{
+fale("menos");
+}
+else if(currentchar=="_")
+{
+fale("underline");
+}
+else if(currentchar=="=")
+{
+fale("igual");
+}
+else if(currentchar=="`")
+{
+fale("grave");
+}
+else if(currentchar=="*")
+{
+fale("asterisco");
+}
+else if(currentchar=="~")
+{
+fale("til");
+}
+else if(currentchar=="!")
+{
+fale("Exclamação");
+}
+else if(currentchar=="?")
+{
+fale("interrogação");
+}
+else if(currentchar=="@")
+{
+fale("arroba");
+}
+else if(currentchar=="#")
+{
+fale("number");
+}
+else if(currentchar=="$")
+{
+fale("cifrão");
+}
+else if(currentchar=="%")
+{
+fale("porcento");
+}
+else if(currentchar=="^")
+{
+fale("circonflexo");
+}
+else if(currentchar=="&")
+{
+fale("é comercial");
+}
+else if(currentchar=="(")
+{
+fale("Abre parênteses");
+}
+else if(currentchar==")")
+{
+fale("fecha parênteses");
+}
+else if(currentchar=="-")
+{
+fale("menos");
+}
+else if(currentchar=="+")
+{
+fale("mais");
+}
+else if(currentchar=="[")
+{
+fale("abre couchetes");
+}
+else if(currentchar=="]")
+{
+fale("fecha couchetes");
+}
+else if(currentchar=="{")
+{
+fale("abre chave");
+}
+else if(currentchar=="}")
+{
+fale("fecha chave");
+}
+else if(currentchar=="\\")
+{
+fale("barra invertida");
+}
+else if(currentchar=="\"")
+{
+fale("aspas");
+}
+else if(currentchar=="\'")
+{
+fale("apóstrofo");
+}
+else if(currentchar=="<")
+{
+fale("menor");
+}
+else if(currentchar==">")
+{
+fale("maior");
+}
+else if(currentchar=="/")
+{
+fale("barra");
+}
+else if(currentchar==";")
+{
+fale("ponto e vírgula");
+}
+else if(currentchar==":")
+{
+fale("dois pontos");
+}
+else
+{
+fale(currentchar);
+}
+mensagem_final.resize(mensagem_final.length()-1);
+}
+else
+{
+fale("em branco");
+}
+}
+else
+{
+fale("em branco");
+}
+}
+else if(key_pressed(KEY_ESCAPE))
+{
+fale("Cancelado");
+return "";
+}
+else if(key_pressed(KEY_RETURN)&&mensagem_final.length()>0)
+{
+return mensagem_final;
+}
+wait(5);
+}
+return "";
+}

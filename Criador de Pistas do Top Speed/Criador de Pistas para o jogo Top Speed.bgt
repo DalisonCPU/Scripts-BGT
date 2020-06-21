@@ -1,0 +1,151 @@
+#include"parsed_data.bgt"
+#include"escrever.bgt"
+#include"fale.bgt"
+#include"m_pro.bgt"
+dynamic_menu_pro m;
+string[] oquecolocar;
+string nomepista, tipochao, tipocurva, op, pegarmetro;
+parsed_data pu;
+void main(){
+file f;
+f.open(arqid, "r");
+pu.set_arquivo(f.read());
+f.close();
+show_game_window(pu.get_value("Criador de Pistas para o jogo Top Speed"));
+wait(1000);
+entrou();
+}
+void menu(){
+m.reset(true);
+m.enable_numbers=true;
+m.enable_first_letter_navigation=true;
+m.click_sound="menumove.ogg";
+m.enter_sound="menuenter.ogg";
+m.open_sound="menuopen.ogg";
+m.repeat_items_at_edges=false;
+m.wrap_sound="menumove.ogg";
+m.enable_side_scrolling=false;
+m.enable_left_and_right=false;
+m.enable_up_and_down=true;
+m.enable_enter=true;
+m.allow_escape=true;
+m.wrap=true;
+m.enable_home_and_end=true;
+}
+void fim(){
+alerta("", pu.get_value("saindo."));
+if(oquecolocar[0]==""){
+exit();
+}
+else
+{
+file f;
+f.open(nomepista+".trk", "w");
+for(uint i=0; i<oquecolocar.length(); i++){
+f.write(oquecolocar[i]+"\n");
+}
+f.close();
+alerta("", "Pronto! Sua pista foi salva.");
+exit();
+}
+}
+void entrou(){
+nomepista=escrever("Qual o nome da pista a criar?");
+if(nomepista==""){
+alerta(pu.get_value("Erro"), pu.get_value("Nenhum nome informado."));
+fim();
+}
+else{
+criar();
+}
+}
+void criar(){
+tipocurva=menutipocurva();
+if(tipocurva==""){
+fim();
+}
+else{
+tipochao=menutipochao();
+if(tipochao==""){
+alerta("", "Nenhum chão escolhido.");
+fim();
+}
+else{
+op=menuop();
+if(op==""){
+alerta("", "Nenhum som escolhido para a curva. Assumindo 0 - Nenhum.");
+op="0";
+}
+pegarmetro=escrever("Quantos centímitros esta curva vai ter?");
+int metro=string_to_number(pegarmetro);
+if(metro<100||metro>100000){
+alerta("", "Número não permitido. Vou deixar com 2000 centímetros.");
+metro=2000;
+}
+oquecolocar.insert_last(tipocurva+" "+tipochao+" "+op+" "+metro);
+criar();
+}
+}
+}
+string menutipocurva(){
+menu();
+m.add_item_tts("Reta", "0");
+m.add_item("easyleft2.ogg", "1");
+m.add_item("left2.ogg", "2");
+m.add_item("hardleft1.ogg", "3");
+m.add_item("hairpinleft1.ogg", "4");
+m.add_item("easyright2.ogg", "5");
+m.add_item("right4.ogg",  "6");
+m.add_item("hardright1.ogg", "7");
+m.add_item("hairpinright1.ogg", "8");
+m.add_item_tts("Voltar", "b");
+int mr=m.run(pu.get_value("Escolha o tipo de curva"), true);
+if(m.get_item_name(mr)=="b"){
+return "";
+}
+else
+{
+return m.get_item_name(mr);
+}
+}
+string menutipochao(){
+menu();
+m.add_item("asphalt1.ogg", "0");
+m.add_item("gravel2.ogg", "1");
+m.add_item("water2.ogg", "2");
+m.add_item("sand3.ogg", "3");
+m.add_item("snow3.ogg", "4");
+m.add_item_tts("Voltar", "b");
+int mr=m.run(pu.get_value("Escolha o chão desta curva"), true);
+if(m.get_item_name(mr)=="b"){
+return "";
+}
+else
+{
+return m.get_item_name(mr);
+}
+}
+string menuop(){
+menu();
+m.add_item_tts("Nenhum som", "0");
+m.add_item("146.wav", "1");
+m.add_item("147.wav", "2");
+m.add_item("159.wav", "3");
+m.add_item("160.wav", "4");
+m.add_item("188.wav", "5");
+m.add_item("194.wav",  "6");
+m.add_item("196.wav", "7");
+m.add_item("206.wav", "8");
+m.add_item("208.wav", "8");
+m.add_item("211.wav", "8");
+m.add_item("226.wav", "8");
+m.add_item_tts("Voltar", "b");
+int mr=m.run(pu.get_value("Escolha o som opcional para a curva"), true);
+if(m.get_item_name(mr)=="b"){
+return "";
+}
+else
+{
+return m.get_item_name(mr);
+}
+}
