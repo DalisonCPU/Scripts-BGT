@@ -1,0 +1,46 @@
+#include"inclusos/fale.bgt"
+#include"inclusos/form.bgt"
+audio_form form;
+string[] listadenomes;
+sound instrumental;
+void main(){
+show_game_window("Sorteador");
+instrumental.stream("instrumental.ogg");
+form.reset();
+setform();
+form.create_window("Sorteador", true);
+int t1=form.create_button("Adicionar lista de nomes");
+int t2=form.create_button("Sortear");
+int cancel=form.create_button("Fechar", false, true);//Botão para fechar o Gerador
+instrumental.volume=-10;
+instrumental.play_looped();
+form.focus(cancel);//Focalizar no campo da senha quando abrir
+while(true){
+wait(5);
+form.monitor();//Monitorização do formulário
+if(key_pressed(KEY_F2))instrumental.volume=instrumental.volume+5;
+if(key_pressed(KEY_F1))instrumental.volume=instrumental.volume-6;
+if(form.is_pressed(cancel)) exit();
+if(form.is_pressed(t1)){
+string j=input_box("Adicionar", "Digite o caminho do arquivo com a lista de nomes:");
+if(!file_exists(j)){
+alert("Erro", "Arquivo não encontrado.");
+}
+else{
+file f;
+f.open(j, "rb");
+listadenomes=string_split(f.read(), "\r\n", false);
+f.close();
+fale("Arquivo adicionado. Total de nomes: "+listadenomes.length+".");
+}
+}
+if(form.is_pressed(t2)){
+if(listadenomes.length==0){
+alert("Opa", "Está faltando ser adicionado a lista de nomes que será sorteada.");
+}
+else{
+alert("Pronto!", "O nome sorteado foi "+listadenomes[random(0, listadenomes.length-1)]);
+}
+}
+}
+}

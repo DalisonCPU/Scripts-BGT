@@ -1,0 +1,51 @@
+/*
+*Funções para o uso do leitor ou fala sape
+*Escrita por DJT
+*Eu não me responsabilizo pelo uso do script. Use por sua conta e risco.
+*/
+tts_voice ttz;//objeto de voz
+uint8 leitor_encontrado=0;
+bool fale(string text, bool interromper=true){
+if(string_contains(text, "%", 1)>-1&&is_game_window_active()==false)return false;
+leitor_encontrado=selecionar_leitor_automaticamente();
+if(leitor_encontrado==0){
+if(interromper)ttz.speak_interrupt(text);//Fala usando função interromper
+else ttz.speak(text);//Fala sem interromper
+}
+else{
+                        screen_reader_braille (leitor_encontrado, text);
+if(interromper)screen_reader_speak_interrupt(leitor_encontrado, text);//Fala com o leitor encontrado interrompendo
+else screen_reader_speak(leitor_encontrado, text);
+return true;
+}
+return true;
+}
+uint8 selecionar_leitor_automaticamente(){
+uint8 leitor=0;
+for(uint8 i=1; i<5; i++){
+if(screen_reader_is_running(i)){
+leitor=i;
+break;
+}
+}
+return leitor;
+}
+void setform()
+{
+if (screen_reader_is_running(1))
+{
+form.set_output_mode(JAWS);
+}
+if (screen_reader_is_running(2))
+{
+form.set_output_mode(WINDOW_EYES);
+}
+if (screen_reader_is_running(3))
+{
+form.set_output_mode(SYSTEM_ACCESS);
+}
+if (screen_reader_is_running(4))
+{
+form.set_output_mode(NVDA);
+}
+}
