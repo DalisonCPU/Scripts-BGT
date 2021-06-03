@@ -1,0 +1,43 @@
+#include"browser.bgt"
+#include"speech.bgt"
+string original="Mega PDF Converter";
+string comandopdf="-rl -rm -ls -rh -f", dir;
+void main(){
+show_game_window(original);
+string[] x=string_split(DIRECTORY_MY_DOCUMENTS, "\\", false);
+dir=x[0]+"\\"+x[1]+"\\"+x[2]+"\\Downloads";
+wait(200);
+string arquivo=select_file(dir);
+arquivo=string_replace(arquivo, "\r\n", "", true);
+arquivo=string_replace(arquivo, "\n", "", true);
+arquivo=string_replace(arquivo, "\r", "", true);
+if(file_exists(arquivo)==false){
+alert(original, "O que foi digitado, não é um nome válido de arquivo.");
+exit();
+}
+else if(string_contains(arquivo, ".pdf", 1)<0&&string_contains(arquivo, ".mobi", 1)<0){
+speak("O arquivo escolhido não é suportado.");
+exit();
+}
+else{
+speak("Convertendo...");
+run("blb2txt.exe", comandopdf+" \""+arquivo+"\"", true, true);
+arquivo= string_trim_right(arquivo, 3)+"txt";
+file f;
+f.open(arquivo, "rb");
+string[] linhasarq=string_split(f.read(), "\r\n", false);
+f.close();
+string final;
+for(uint i=0;i<linhasarq.length();i++){
+if(i<linhasarq.length()-1)final+=linhasarq[i]+"\r\n";
+else if(i==linhasarq.length()-1)final+=linhasarq[i];
+}
+f.open(arquivo, "wb");
+f.write(final);
+f.close();
+speak("Convertido!");
+wait(200);
+run("C:\\windows\\notepad.exe", arquivo, false, false);
+exit();
+}
+}
