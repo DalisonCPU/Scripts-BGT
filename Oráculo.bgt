@@ -1,0 +1,166 @@
+string              signo, planeta, metal, pedra, vicio, virtude, verbo;
+void main(){
+string mm=input_box("Digite sua idade no formato dia/mês/ano", "");
+string[] datastring=string_split(mm, "/", false);
+calendar data;
+data.reset();
+data.set(string_to_number(datastring[2]), string_to_number(datastring[1]), string_to_number(datastring[0]), TIME_HOUR, TIME_MINUTE, TIME_SECOND);
+string nasceunomedia=paradia(data.weekday_name);
+int nasceudia=data.day;
+string nasceumes=parames(data.month_name);
+int nasceuano=data.year;
+calendar agora;
+agora.reset();
+int idade=agora.year-data.year;
+if(data.month>DATE_MONTH||data.month==DATE_MONTH&&DATE_DAY>data.day)idade--;
+int diadistancia=data.diff_days(agora);
+int sono=diadistancia/3;
+double coracao=80.0*60*24*idade;
+definedados(data.month, data.day);
+string final="Você nasceu "+nasceunomedia+". Sua idade: "+idade+" anos. Signo: "+signo+". Planeta regente: "+planeta+". Metal protetor: "+metal+". Pedra protetora: "+pedra+". Maior virtude: "+virtude+". Vício: "+vicio+". Deve repetir sempre: "+verbo+". Você já dormiu em média "+sono+" dias e seu coração já bateu aproximadamente "+coracao+" veses.";
+clipboard_copy_text(final);
+exit();
+}
+string paradia(string diaatual){
+if(diaatual=="Sunday")return "Domingo";
+if(diaatual=="Monday")return "Segunda-Feira";
+if(diaatual=="Tuesday")return "Terça-Feira";
+if(diaatual=="Wednesday")return "Quarta-Feira";
+if(diaatual=="Thursday")return "Quinta-Feira";
+if(diaatual=="Friday")return "Sexta-Feira";//Dia escrito no Brasil
+if(diaatual=="Saturday") return "Sábado";
+return "";
+}
+string parames(string m){
+return m;
+}
+void definedados(int mm, int dd){
+    if (mm==1&&dd > 20||
+    mm==2&&dd < 20){
+             signo="Aquário";
+             planeta="Urano";
+             metal="chumbo";
+             pedra="opala";
+             virtude="temperança";
+             vicio="inveja";
+             verbo="Eu sei";
+}
+    else
+    if (mm== 2&&dd > 19||
+       mm== 3&&dd < 21) {
+            signo="Peixes";
+            planeta="Netuno";
+            metal="estanho";
+            pedra="ametista";
+            virtude="justiça";
+            vicio="gula";
+            verbo="Eu creio";
+}
+    else
+    if (mm== 3&&dd > 20||
+       mm== 4&&dd < 21) {
+            signo="Aries";
+            planeta="Marte";
+            metal="ferro";
+            pedra="rubi";
+            virtude="fortaleza";
+            vicio="violência";
+            verbo="Eu quero";
+}
+    else
+    if (mm== 4&&dd > 20||
+mm== 5&&dd < 21) {
+            signo="Touro";
+            planeta="Vênus";
+            metal="cobre";
+            pedra="ágata";
+            vicio="luxúria";
+            verbo="Eu tenho";
+}
+    else
+    if (mm== 5&&dd > 20||
+mm== 6&&dd < 21) {
+            signo="Gêmeos";
+            planeta="Mercúrio";
+            metal="mercúrio";
+            pedra="água marinha";
+            virtude="temperanca";
+            vicio="inveja";
+            verbo="Eu vou";
+}
+    else
+    if (mm== 6&&dd > 20||
+mm== 7&&dd < 22) {
+            signo="Câncer";
+            planeta="Lua";
+            metal="prata";
+            pedra="esmeralda";
+            virtude="esperança";
+            vicio="avareza";
+            verbo="Eu sinto";
+}
+    else
+    if (mm== 7&&dd > 21||
+mm== 8&&dd < 23) {
+            signo="Leão";
+            planeta="Sol";
+            metal="ouro";
+            virtude="fé";
+            vicio="vaidade";
+            verbo="Eu sou";
+}
+    else
+    if (mm== 8&&dd > 22||
+mm== 9&&dd < 23) {
+            signo="Virgem";
+            planeta="Mercúrio";
+            metal="mercúrio";
+            pedra="jaspe";
+            virtude="temperança";
+            vicio="inveja";
+            verbo="Eu analiso";
+}
+    else
+    if (mm== 9&&dd > 22||
+mm== 10&&dd < 23) {
+            signo="Libra";
+            planeta="Vênus";
+            metal="cobre";
+            pedra="safira";
+            vicio="luxúria";
+            verbo="Eu amo";
+}
+    else
+    if (mm== 10&&dd > 22||
+mm== 11&&dd < 22) {
+            signo="Escorpião";
+            planeta="Plutão";
+            metal="ferro";
+            pedra="topázio";
+            virtude="fortaleza";
+            vicio="intransigência";
+            verbo="Eu domino";
+}
+    else
+    if (mm== 11&&dd > 23||
+mm== 12&&dd < 22) {
+            signo="Sagitário";
+            planeta="Júpiter";
+            metal="estanho";
+            pedra="turquesa azul";
+            virtude="justiça";
+            vicio="gula";
+            verbo="Eu vejo";
+}
+    else
+    if (mm== 12&&dd > 21||
+mm== 1 &&dd < 21) {
+            signo="Capricórnio";
+            planeta="Saturno";
+            metal="chumbo";
+            pedra="ônix";
+            virtude="prudência";
+            vicio="egoísmo";
+            verbo="Eu posso";
+}
+}
