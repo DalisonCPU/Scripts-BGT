@@ -1,0 +1,3438 @@
+//constants
+
+enum control_types
+{
+ct_button=0,
+ct_input,
+ct_checkbox,
+ct_progress,
+ct_status_bar,
+ct_list
+}
+//form_errors
+enum audioform_errorcodes
+{
+form_error_none=0,
+form_error_invalid_index,
+form_error_invalid_control,
+form_error_invalid_value,
+form_error_invalid_operation,
+form_error_no_window,
+form_error_window_full,
+form_error_text_too_long,
+form_error_list_empty,
+form_error_list_full,
+form_error_invalid_list_index,
+form_error_control_invisible,
+form_error_no_controls_visible
+}
+//text entry speech flags
+
+enum text_entry_speech_flags
+{
+textflag_none=0,
+textflag_characters,
+textflag_words,
+textflag_characters_words
+}
+//Text edit modes
+enum text_edit_mode_constants
+{
+edit_mode_replace=0,
+edit_mode_trim_to_length,
+edit_mode_append_to_end
+}
+//main window class
+
+class audio_form
+{
+bool active;
+bool speak_control_attributes_separately;
+
+//constructor
+
+audio_form()
+{
+reset();
+}
+
+void create_window(string window_title, bool change_screen_title=true, bool say_dialog=true)
+{
+form_error=0;
+if(!active)
+{
+get_characters();
+}
+active=true;
+if(change_screen_title)
+{
+show_game_window(window_title);
+}
+if(@ui_speech==null)
+{
+tts_voice temp_voice;
+@ui_speech=temp_voice;
+}
+if(window_title=="")
+{
+return;
+}
+if(speak_control_attributes_separately)
+{
+speak(window_title,true);
+if(say_dialog)
+{
+speak("Diálogo",false);
+}
+}
+else
+{
+if(say_dialog)
+{
+speak(window_title+" Diálogo",true);
+}
+else
+{
+speak(window_title,true);
+}
+}
+}
+
+bool set_checkbox_mark(int control_index, bool checked)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_checkbox)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].checked=checked;
+return true;
+}
+
+bool set_output_mode(int speech_output, bool progress_bars_beep=false)
+{
+form_error=0;
+if((speech_output<0)||(speech_output>4))
+{
+return false;
+}
+this.speech_output=speech_output;
+for(int counter=0; counter<c_form.length(); counter++)
+{
+c_form[counter].speech_output=speech_output;
+c_form[counter].beeping_progress=progress_bars_beep;
+if(c_form[counter].beeping_progress)
+{
+}
+}
+return true;
+}
+
+int create_input_box(string caption, string default_text="", string password_mask="", int maximum_length=0, bool read_only=false, bool multiline=false)
+{
+form_error=0;
+if(active_controls>=50)
+{
+form_error=form_error_window_full;
+return -1;
+}
+control_counter++;
+active_controls++;
+c_form.resize(control_counter+1);
+c_form[control_counter].type=ct_input;
+c_form[control_counter].hotkey=shortcut(caption);
+c_form[control_counter].hotkey_letter=shortcut_letter(caption);
+c_form[control_counter].caption=string_replace(caption, "&", "", true);
+c_form[control_counter].visible=true;
+c_form[control_counter].enabled=true;
+c_form[control_counter].speech_output=speech_output;
+if((maximum_length>0)&&(default_text.length()>maximum_length))
+{
+default_text=string_left(default_text, maximum_length);
+form_error=form_error_text_too_long;
+}
+c_form[control_counter].text=default_text;
+c_form[control_counter].sel_start=-1;
+c_form[control_counter].sel_length=0;
+c_form[control_counter].max_length=maximum_length;
+c_form[control_counter].password_mask=string_left(password_mask, 1);
+c_form[control_counter].read_only=read_only;
+c_form[control_counter].multiline=multiline;
+@c_form[control_counter].ui_speech=ui_speech;
+return control_counter;
+}
+
+int create_list(string caption, int maximum_items=0, bool multiselect=false)
+{
+form_error=0;
+if(active_controls>=50)
+{
+form_error=form_error_window_full;
+return -1;
+}
+control_counter++;
+active_controls++;
+c_form.resize(control_counter+1);
+c_form[control_counter].type=ct_list;
+c_form[control_counter].hotkey=shortcut(caption);
+c_form[control_counter].hotkey_letter=shortcut_letter(caption);
+c_form[control_counter].caption=string_replace(caption, "&", "", true);
+c_form[control_counter].visible=true;
+c_form[control_counter].enabled=true;
+c_form[control_counter].max_length=maximum_items;
+c_form[control_counter].list_multiselect=multiselect;
+c_form[control_counter].speech_output=speech_output;
+@c_form[control_counter].ui_speech=ui_speech;
+return control_counter;
+}
+
+int create_button(string caption, bool primary=false, bool cancel=false, bool overwrite=true)
+{
+form_error=0;
+if(active_controls>=50)
+{
+form_error=form_error_window_full;
+return -1;
+}
+control_counter++;
+active_controls++;
+c_form.resize(control_counter+1);
+c_form[control_counter].type=ct_button;
+c_form[control_counter].hotkey=shortcut(caption);
+c_form[control_counter].hotkey_letter=shortcut_letter(caption);
+c_form[control_counter].caption=string_replace(caption, "&", "", true);
+c_form[control_counter].visible=true;
+c_form[control_counter].enabled=true;
+c_form[control_counter].speech_output=speech_output;
+@c_form[control_counter].ui_speech=ui_speech;
+set_button_attributes(control_counter, primary, cancel, overwrite);
+return control_counter;
+}
+
+int create_progress_bar(string caption, int speak_interval=5, bool speak_global=true)
+{
+form_error=0;
+if(active_controls>=50)
+{
+form_error=form_error_window_full;
+return -1;
+}
+control_counter++;
+active_controls++;
+c_form.resize(control_counter+1);
+c_form[control_counter].type=ct_progress;
+c_form[control_counter].hotkey=shortcut(caption);
+c_form[control_counter].hotkey_letter=shortcut_letter(caption);
+c_form[control_counter].caption=string_replace(caption, "&", "", true);
+c_form[control_counter].visible=true;
+c_form[control_counter].enabled=true;
+c_form[control_counter].speak_interval=speak_interval*1000;
+c_form[control_counter].speak_global=check_globals(speak_global);
+c_form[control_counter].speech_output=speech_output;
+@c_form[control_counter].ui_speech=ui_speech;
+return control_counter;
+}
+
+int create_status_bar(string caption, string text)
+{
+form_error=0;
+if(active_controls>=50)
+{
+form_error=form_error_window_full;
+return -1;
+}
+control_counter++;
+active_controls++;
+c_form.resize(control_counter+1);
+c_form[control_counter].type=ct_status_bar;
+c_form[control_counter].hotkey=shortcut(caption);
+c_form[control_counter].hotkey_letter=shortcut_letter(caption);
+c_form[control_counter].caption=string_replace(caption, "&", "", true);
+c_form[control_counter].visible=true;
+c_form[control_counter].enabled=true;
+c_form[control_counter].text=text;
+c_form[control_counter].speech_output=speech_output;
+@c_form[control_counter].ui_speech=ui_speech;
+return control_counter;
+}
+
+int create_checkbox(string caption, bool initial_value=false, bool read_only=false)
+{
+form_error=0;
+if(active_controls>=50)
+{
+form_error=form_error_window_full;
+return -1;
+}
+control_counter++;
+active_controls++;
+c_form.resize(control_counter+1);
+c_form[control_counter].type=ct_checkbox;
+c_form[control_counter].hotkey=shortcut(caption);
+c_form[control_counter].hotkey_letter=shortcut_letter(caption);
+c_form[control_counter].caption=string_replace(caption, "&", "", true);
+c_form[control_counter].visible=true;
+c_form[control_counter].enabled=true;
+c_form[control_counter].checked=initial_value;
+c_form[control_counter].read_only=read_only;
+c_form[control_counter].speech_output=speech_output;
+@c_form[control_counter].ui_speech=ui_speech;
+return control_counter;
+}
+
+bool activate_progress_timer(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_progress)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(c_form[control_index].speak_interval==0)
+{
+form_error=form_error_invalid_value;
+return false;
+}
+if(c_form[control_index].progress_time.running==true)
+{
+form_error=form_error_invalid_operation;
+return false;
+}
+c_form[control_index].progress_time.resume();
+return true;
+}
+
+bool pause_progress_timer(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_progress)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].progress_time.running)
+{
+form_error=form_error_invalid_operation;
+return false;
+}
+c_form[control_index].progress_time.pause();
+return true;
+}
+
+bool delete_control(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].active=false;
+if(c_form[control_index].type==ct_progress)
+{
+}
+active_controls--;
+control_focus=-1;
+return true;
+}
+
+void monitor()
+{
+int start=control_focus;
+int defaults=get_default_button();
+int cancels=get_cancel_button();
+int focused=get_current_focus();
+form_error=0;
+if((key_pressed(KEY_LCONTROL))&&(key_pressed(KEY_RCONTROL)))
+{
+stop_speech();
+}
+if(!active)
+{
+form_error=form_error_no_window;
+return;
+}
+if(key_pressed(KEY_TAB))
+{
+if((control_counter<0)||(key_down(KEY_LMENU))||(key_down(KEY_LWIN)))
+{
+return;
+}
+if((control_counter==0)&&(control_focus==0))
+{
+return;
+}
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+control_focus--;
+if(control_focus<0)
+{
+control_focus=control_counter;
+}
+while((c_form[control_focus].visible==false)||(c_form[control_focus].active==false))
+{
+control_focus--;
+if(control_focus<0)
+{
+control_focus=control_counter;
+}
+if(control_focus==start)
+{
+form_error=form_error_no_controls_visible;
+return;
+}
+}
+}
+else
+{
+control_focus++;
+if(control_focus>control_counter)
+{
+control_focus=0;
+}
+while((c_form[control_focus].visible==false)||(c_form[control_focus].active==false))
+{
+control_focus++;
+if(control_focus>control_counter)
+{
+control_focus=0;
+}
+if(control_focus==start)
+{
+form_error=form_error_no_controls_visible;
+return;
+}
+}
+}
+focus(control_focus, true);
+}
+if((key_pressed(KEY_ESCAPE))&&(cancels>-1))
+{
+c_form[cancels].pressed=true;
+}
+if((focused<0||c_form[focused].multiline==false)&&((key_pressed(KEY_RETURN))||(key_pressed(KEY_NUMPADENTER))))
+{
+if((defaults==-1)&&(focused>-1))
+{
+if(c_form[focused].type==ct_button)
+{
+c_form[focused].pressed=true;
+}
+}
+if(defaults>-1)
+{
+if(focused==-1)
+{
+c_form[defaults].pressed=true;
+}
+if(focused>-1)
+{
+if((c_form[focused].type!=ct_button)&&((c_form[focused].type!=ct_input)||(!c_form[focused].multiline)))
+{
+c_form[defaults].pressed=true;
+}
+if(c_form[focused].type==ct_button)
+{
+c_form[focused].pressed=true;
+}
+}
+}
+}
+check_shortcuts();
+check_speech_mode();
+if(control_focus==-1)
+{
+return;
+}
+check(control_focus);
+}
+
+bool focus(int control_id)
+{
+return focus(control_id, false);
+}
+
+bool is_visible(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+return c_form[control_index].visible;
+}
+
+bool is_enabled(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+return c_form[control_index].enabled;
+}
+
+bool is_read_only(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_input)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(c_form[control_index].type!=ct_checkbox)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+return c_form[control_index].read_only;
+}
+
+bool is_multiline(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_input)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+return c_form[control_index].multiline;
+}
+
+bool is_pressed(int control_index)
+{
+bool temp;
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_button)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+temp=c_form[control_index].pressed;
+c_form[control_index].pressed=false;
+return temp;
+}
+
+bool is_checked(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_checkbox)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+return c_form[control_index].checked;
+}
+
+bool add_list_item(int control_index, string option, int position=-1, bool selected=false)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if((c_form[control_index].max_length>0)&&(c_form[control_index].max_length==c_form[control_index].list.length()))
+{
+form_error=form_error_list_full;
+return false;
+}
+if(position>c_form[control_index].list_length+1)
+{
+form_error=form_error_invalid_list_index;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].list_length++;
+c_form[control_index].list.resize(c_form[control_index].list.length()+1);
+if((position==-1)||(position==c_form[control_index].list_length+1))
+{
+c_form[control_index].list[c_form[control_index].list_length].item=option;
+if(c_form[control_index].list_multiselect)
+{
+c_form[control_index].list[c_form[control_index].list_length].checked=selected;
+}
+}
+else
+{
+for(int counter=c_form[control_index].list_length-1; counter>-1; counter--)
+{
+if(counter<position)
+{
+break;
+}
+c_form[control_index].list[counter+1]=c_form[control_index].list[counter];
+}
+c_form[control_index].list[position].item=option;
+if(c_form[control_index].list_multiselect)
+{
+c_form[control_index].list[position].checked=selected;
+}
+}
+return true;
+}
+
+bool edit_list_item(int control_index, string new_option, int position)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if((c_form[control_index].max_length>0)&&(c_form[control_index].max_length==c_form[control_index].list.length()))
+{
+form_error=form_error_list_full;
+return false;
+}
+if(position>c_form[control_index].list_length)
+{
+form_error=form_error_invalid_list_index;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].list[position].item=new_option;
+return true;
+}
+
+bool set_button_attributes(int control_index, bool primary, bool cancel, bool overwrite=true)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_button)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+set_primary(control_index, primary, overwrite);
+set_cancel(control_index, cancel, overwrite);
+return true;
+}
+
+bool delete_list_item(int control_index, int list_index, bool reset_cursor=true, bool speak_deletion_status=true)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if((list_index<0)||(list_index>c_form[control_index].list_length))
+{
+form_error=form_error_invalid_list_index;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(speak_deletion_status)
+{
+speak(c_form[control_index].list[list_index].item+" deletado.", true);
+}
+c_form[control_index].list.remove_at(list_index);
+c_form[control_index].list_length--;
+if(reset_cursor)
+{
+c_form[control_index].list_position=-1;
+}
+else
+{
+c_form[control_index].list_position--;
+if(c_form[control_index].list_position<0)
+{
+c_form[control_index].list_position=0;
+}
+}
+if((speak_deletion_status)&&(c_form[control_index].list_position>-1))
+{
+speak(c_form[control_index].list[get_list_position(control_index)].item, false);
+if(c_form[control_index].list[get_list_position(control_index)].checked)
+{
+speak("Marcado", false);
+}
+}
+return true;
+}
+
+bool delete_list_selections(int control_index, bool reset_cursor=true, bool speak_deletion_status=true)
+{
+form_error=0;
+int[] selections;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+selections=get_list_selections(control_index);
+if(speak_deletion_status)
+{
+if(selections.length()==1)
+{
+speak(c_form[control_index].list[selections[0]].item+" deletado.", true);
+}
+else
+{
+speak(selections.length()+" itens deletados.", true);
+}
+}
+for(int counter=0; counter<selections.length(); counter++)
+{
+int current_delete=(selections[counter]-counter);
+c_form[control_index].list.remove_at(current_delete);
+c_form[control_index].list_length--;
+}
+if(reset_cursor)
+{
+c_form[control_index].list_position=-1;
+}
+else
+{
+if(c_form[control_index].list_position>c_form[control_index].list_length)
+{
+c_form[control_index].list_position=c_form[control_index].list_length;
+}
+if(c_form[control_index].list_position<0)
+{
+c_form[control_index].list_position=0;
+}
+}
+if((speak_deletion_status)&&(c_form[control_index].list_position>-1))
+{
+speak(c_form[control_index].list[get_list_position(control_index)].item, false);
+if(c_form[control_index].list[get_list_position(control_index)].checked)
+{
+speak("marcado", false);
+}
+}
+return true;
+}
+
+bool clear_list(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].list.resize(0);
+c_form[control_index].list_length=-1;
+c_form[control_index].list_position=-1;
+return true;
+}
+
+bool set_state(int control_index, bool enabled, bool visible)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].enabled=enabled;
+c_form[control_index].visible=visible;
+return true;
+}
+
+bool set_overwrite_mode(int control_index, bool overwrite)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_input)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].overwrite=overwrite;
+return true;
+}
+
+int get_list_position(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return -1;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+return c_form[control_index].list_position;
+}
+
+bool set_list_position(int control_index, int position=-1)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if((position<-1)||(position>=get_list_count(control_index)))
+{
+form_error=form_error_invalid_list_index;
+return false;
+}
+c_form[control_index].list_position=position;
+return true;
+}
+
+int[] get_list_selections(int control_index)
+{
+int[] temp;
+int position;
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return temp;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return temp;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return temp;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return temp;
+}
+position=get_list_position(control_index);
+if(!c_form[control_index].list_multiselect)
+{
+if(position==-1)
+{
+return temp;
+}
+temp.insert_last(position);
+return temp;
+}
+for(int counter=0; counter<=c_form[control_index].list_length; counter++)
+{
+if(c_form[control_index].list[counter].checked)
+{
+temp.insert_last(counter);
+}
+}
+if((temp.length()==0)&&(position>-1))
+{
+temp.insert_last(position);
+}
+return temp;
+}
+
+int get_list_count(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return -1;
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+return c_form[control_index].list.length();
+}
+
+string get_list_item(int control_index, int list_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return "";
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return "";
+}
+if(c_form[control_index].type!=ct_list)
+{
+form_error=form_error_invalid_control;
+return "";
+}
+if((list_index<0)||(list_index>c_form[control_index].list_length))
+{
+form_error=form_error_invalid_list_index;
+return "";
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return "";
+}
+return c_form[control_index].list[list_index].item;
+}
+
+string get_caption(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return "";
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return "";
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return "";
+}
+return c_form[control_index].caption;
+}
+
+int get_default_button()
+{
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if(c_form[counter].primary)
+{
+return counter;
+}
+}
+return -1;
+}
+
+int get_cancel_button()
+{
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if(c_form[counter].cancel)
+{
+return counter;
+}
+}
+return -1;
+}
+
+string get_text(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return "";
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return "";
+}
+if((c_form[control_index].type!=ct_input)&&(c_form[control_index].type!=ct_status_bar))
+{
+form_error=form_error_invalid_control;
+return "";
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return "";
+}
+return c_form[control_index].text;
+}
+
+bool set_text(int control_index, string new_text)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if((c_form[control_index].type!=ct_input)&&(c_form[control_index].type!=ct_status_bar))
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].text=new_text;
+c_form[control_index].sel_start=-1;
+return true;
+}
+
+bool add_text(int control_index, string new_text, int position=-1)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if((c_form[control_index].type!=ct_input)&&(c_form[control_index].type!=ct_status_bar))
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(position>c_form[control_index].text.length())
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(position==-1)
+{
+position=c_form[control_index].text.length();
+}
+c_form[control_index].add_silent(new_text, position);
+return true;
+}
+
+bool edit_text(int control_index, string new_text, int position, int edit_mode=edit_mode_trim_to_length)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if((c_form[control_index].type!=ct_input)&&(c_form[control_index].type!=ct_status_bar))
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].edit_silent(new_text, position, edit_mode);
+return true;
+}
+
+int get_progress(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return -1;
+}
+if(c_form[control_index].type!=ct_progress)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+return c_form[control_index].progress;
+}
+
+int get_control_type(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return -1;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return -1;
+}
+return c_form[control_index].type;
+}
+
+string get_control_attributes(int control_index)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return "";
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return "";
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return "";
+}
+return c_form[control_index].type_to_name();
+}
+
+int get_control_count()
+{
+form_error=0;
+return control_counter+1;
+}
+
+int get_current_focus()
+{
+if(!active)
+{
+form_error=form_error_no_window;
+return -1;
+}
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if(c_form[counter].focused==true)
+{
+return counter;
+}
+}
+return -1;
+}
+
+int get_last_error()
+{
+return form_error;
+}
+
+bool set_progress(int control_index, int value)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(c_form[control_index].type!=ct_progress)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if((value<0)||(value>100))
+{
+form_error=form_error_invalid_value;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].progress=value;
+if(c_form[control_index].speak_interval==0)
+{
+if(c_form[control_index].speak_global==true)
+{
+c_form[control_index].speak_progress();
+}
+else
+{
+if(c_form[control_index].focused==true)
+{
+c_form[control_index].speak_progress();
+}
+}
+}
+return true;
+}
+
+bool set_speech_verbosity_options(int control_index, string highlight_selection, string highlight_unselection, string deletion, string percentage, int keyboard_echo)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if((control_index<0)||(control_index>c_form.length()-1))
+{
+form_error=form_error_invalid_index;
+return false;
+}
+if(!c_form[control_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+c_form[control_index].highlight_selection_speech_text=highlight_selection;
+c_form[control_index].highlight_unselection_speech_text=highlight_unselection;
+c_form[control_index].percentage_speech_text=percentage;
+c_form[control_index].delete_speech_text=deletion;
+c_form[control_index].echo_flag=keyboard_echo;
+return true;
+}
+
+bool set_tts_object(tts_voice@ handle)
+{
+if(@handle==null)
+{
+tts_voice temp_voice;
+@ui_speech=temp_voice;
+return true;
+}
+@ui_speech=@handle;
+return true;
+}
+
+void reset()
+{
+form_error=0;
+active=false;
+control_focus=-1;
+control_counter=-1;
+active_controls=-1;
+speech_output=0;
+c_form.resize(0);
+@ui_speech=null;
+}
+
+//internal methods:
+
+private void set_primary(int control, bool state, bool overwrite)
+{
+int defaults=get_default_button();
+if(!state)
+{
+c_form[control].primary=state;
+return;
+}
+if(defaults==-1)
+{
+c_form[control].primary=state;
+return;
+}
+if(!overwrite)
+{
+return;
+}
+c_form[control].primary=state;
+if(defaults!=control)
+{
+c_form[defaults].primary=false;
+}
+}
+
+private void set_cancel(int control, bool state, bool overwrite)
+{
+int cancels=get_cancel_button();
+if(!state)
+{
+c_form[control].cancel=state;
+return;
+}
+if(cancels==-1)
+{
+c_form[control].cancel=state;
+return;
+}
+if(!overwrite)
+{
+return;
+}
+c_form[control].cancel=state;
+if(cancels!=control)
+{
+c_form[cancels].cancel=false;
+}
+}
+
+private bool focus(int tab_index, bool interrupt_previous_speech)
+{
+form_error=0;
+if(!active)
+{
+form_error=form_error_no_window;
+return false;
+}
+if(!c_form[tab_index].visible)
+{
+form_error=form_error_control_invisible;
+return false;
+}
+if(tab_index>c_form.length()-1)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+if(!c_form[tab_index].active)
+{
+form_error=form_error_invalid_control;
+return false;
+}
+control_focus=tab_index;
+c_form[tab_index].focus(interrupt_previous_speech, speak_control_attributes_separately);
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if(counter==tab_index)
+{
+continue;
+}
+c_form[counter].focused=false;
+}
+return true;
+}
+
+private void check(int tab_index)
+{
+c_form[tab_index].check();
+}
+
+private bool check_globals(bool required_setting)
+{
+if(!required_setting)
+{
+return false;
+}
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if((c_form[counter].type==ct_progress)&&(c_form[counter].speak_global))
+{
+return false;
+}
+}
+return true;
+}
+
+private void check_speech_mode()
+{
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if(c_form[counter].speech_output==speech_output)
+{
+continue;
+}
+c_form[counter].speech_output=speech_output;
+}
+}
+
+private void check_shortcuts()
+{
+for(int counter=0; counter<c_form.length(); counter++)
+{
+if(c_form[counter].hotkey_letter=="")
+{
+continue;
+}
+if(letter_to_key(c_form[counter].hotkey_letter)!=c_form[counter].hotkey)
+{
+c_form[counter].hotkey_letter="";
+c_form[counter].hotkey=-1;
+continue;
+}
+if((key_down(KEY_LMENU))&&(key_pressed(c_form[counter].hotkey)))
+{
+focus(counter, true);
+}
+}
+}
+
+private int shortcut(string caption_text)
+{
+for(int counter=0; counter<caption_text.length(); counter++)
+{
+if(caption_text[counter]!="&")
+{
+continue;
+}
+if(counter==caption_text.length()-1)
+{
+return -1;
+}
+else
+{
+return letter_to_key(caption_text[counter+1]);
+}
+}
+return -1;
+}
+
+private string shortcut_letter(string caption_text)
+{
+for(int counter=0; counter<caption_text.length(); counter++)
+{
+if(caption_text[counter]!="&")
+{
+continue;
+}
+if(counter==caption_text.length()-1)
+{
+return "";
+}
+else
+{
+return caption_text[counter+1];
+}
+}
+return "";
+}
+
+private int letter_to_key(string char)
+{
+if(char.length()!=1)
+{
+char=string_left(char, 1);
+}
+if(!string_is_alphanumeric(char))
+{
+return -1;
+}
+char=string_to_lower_case(char);
+if(char=="a")
+{
+return KEY_A;
+}
+if(char=="b")
+{
+return KEY_B;
+}
+if(char=="c")
+{
+return KEY_C;
+}
+if(char=="d")
+{
+return KEY_D;
+}
+if(char=="e")
+{
+return KEY_E;
+}
+if(char=="f")
+{
+return KEY_F;
+}
+if(char=="g")
+{
+return KEY_G;
+}
+if(char=="h")
+{
+return KEY_H;
+}
+if(char=="i")
+{
+return KEY_I;
+}
+if(char=="j")
+{
+return KEY_J;
+}
+if(char=="k")
+{
+return KEY_K;
+}
+if(char=="l")
+{
+return KEY_L;
+}
+if(char=="m")
+{
+return KEY_M;
+}
+if(char=="n")
+{
+return KEY_N;
+}
+if(char=="o")
+{
+return KEY_O;
+}
+if(char=="p")
+{
+return KEY_P;
+}
+if(char=="q")
+{
+return KEY_Q;
+}
+if(char=="r")
+{
+return KEY_R;
+}
+if(char=="s")
+{
+return KEY_S;
+}
+if(char=="t")
+{
+return KEY_T;
+}
+if(char=="u")
+{
+return KEY_U;
+}
+if(char=="v")
+{
+return KEY_V;
+}
+if(char=="w")
+{
+return KEY_W;
+}
+if(char=="x")
+{
+return KEY_X;
+}
+if(char=="y")
+{
+return KEY_Y;
+}
+if(char=="z")
+{
+return KEY_Z;
+}
+if(char=="0")
+{
+return KEY_0;
+}
+if(char=="1")
+{
+return KEY_1;
+}
+if(char=="2")
+{
+return KEY_2;
+}
+if(char=="3")
+{
+return KEY_3;
+}
+if(char=="4")
+{
+return KEY_4;
+}
+if(char=="5")
+{
+return KEY_5;
+}
+if(char=="6")
+{
+return KEY_6;
+}
+if(char=="7")
+{
+return KEY_7;
+}
+if(char=="8")
+{
+return KEY_8;
+}
+if(char=="9")
+{
+return KEY_9;
+}
+return -1;
+}
+
+private bool speak(string text, bool interrupt)
+{
+if((speech_output<=0)||(speech_output>4))
+{
+if(interrupt)
+{
+return ui_speech.speak_interrupt(text);
+}
+return ui_speech.speak(text);
+}
+if(interrupt)
+{
+return screen_reader_speak_interrupt(speech_output, text);
+}
+return screen_reader_speak(speech_output, text);
+}
+
+private bool stop_speech()
+{
+if((speech_output<=0)||(speech_output>4))
+{
+return ui_speech.stop();
+}
+return screen_reader_stop_speech(speech_output);
+}
+
+//internal properties
+
+private int speech_output;
+private control[] c_form;
+private int form_error;
+private int control_counter;
+private int active_controls;
+private int control_focus;
+private tts_voice@ ui_speech;
+}
+
+//Control class
+//This is an internal class and should not be used by the application.
+
+class control
+{
+string caption;
+string text;
+string password_mask;
+string highlight_selection_speech_text;
+string highlight_unselection_speech_text;
+string percentage_speech_text;
+string delete_speech_text;
+string hotkey_letter;
+list_item[] list;
+bool list_multiselect;
+int type;
+int progress;
+int echo_flag;
+int speak_interval;
+int speech_output;
+bool beeping_progress;
+int max_items;
+int hotkey;
+int list_index;
+int list_length;
+int list_position;
+int sel_start;
+int sel_highlight;
+int sel_length;
+int max_length;
+bool speak_global;
+bool visible;
+bool enabled;
+bool checked;
+bool overwrite;
+bool read_only;
+bool multiline;
+bool pressed;
+bool focused;
+bool primary;
+bool cancel;
+bool active;
+tone_synth beep;
+sound@ bar;
+timer progress_time;
+tts_voice@ ui_speech;
+
+control()
+{
+progress_time.restart();
+progress_time.pause();
+caption="";
+text="";
+password_mask="";
+type=-1;
+sel_start=0;
+sel_length=0;
+progress=0;
+max_length=0;
+echo_flag=textflag_characters;
+speak_interval=5000;
+speech_output=0;
+beeping_progress=false;
+max_items=0;
+visible=true;
+enabled=true;
+active=true;
+checked=false;
+read_only=false;
+multiline=false;
+overwrite=false;
+pressed=false;
+focused=false;
+primary=false;
+cancel=false;
+speak_global=false;
+highlight_selection_speech_text="Selected";
+highlight_unselection_speech_text="Unselected";
+delete_speech_text="Deletado";
+percentage_speech_text="Percent";
+hotkey=-1;
+hotkey_letter="";
+list.resize(0);
+list_index=-1;
+list_length=-1;
+list_position=-1;
+@ui_speech=null;
+}
+
+void focus(bool interrupt_previous_speech, bool separate_attributes)
+{
+string typename=type_to_name();
+if(separate_attributes==true)
+{
+if(interrupt_previous_speech==true)
+{
+speak(caption,true);
+}
+else
+{
+speak(caption,false);
+}
+speak(typename,false);
+}
+else
+{
+if(interrupt_previous_speech==true)
+{
+speak(caption+" "+typename,true);
+}
+else
+{
+speak(caption+" "+typename,false);
+}
+}
+if(hotkey_letter!="")
+{
+speak("shortcut "+hotkey_letter,false);
+}
+if((type==ct_input)&&(password_mask!=""))
+{
+if(text.length()>0)
+{
+speak(input_box_speak(password_mask)+" times "+text.length(),false);
+}
+}
+if((type==ct_input)&&(password_mask==""))
+{
+speak(text,false);
+}
+if(type==ct_status_bar)
+{
+speak(text,false);
+}
+if(type==ct_checkbox)
+{
+if(checked==false)
+{
+speak("Não marcado",false);
+}
+if(checked==true)
+{
+speak("Marcado",false);
+}
+}
+if(type==ct_progress)
+{
+speak_progress(false);
+}
+if((type==ct_list)&&(list_position>-1))
+{
+speak(list[list_position].item, false);
+if(list[list_position].checked)
+{
+speak("Marcado", false);
+}
+}
+focused=true;
+}
+
+void check()
+{
+string char;
+char=get_characters();
+if((type==ct_input)&&(focused))
+{
+if(!read_only)
+{
+if(char!="")
+{
+if(overwrite)
+{
+edit(char);
+}
+else
+{
+add(char);
+}
+}
+if(((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))&&(key_pressed(KEY_X)))
+{
+cut_highlighted();
+}
+if(((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))&&(key_pressed(KEY_V)))
+{
+paste_text();
+}
+if(key_pressed(KEY_BACK))
+{
+delete_highlighted();
+}
+if(key_pressed(KEY_DELETE))
+{
+delete_highlighted(1);
+}
+if(multiline==true&&((key_pressed(KEY_RETURN))||(key_pressed(KEY_NUMPADENTER))))
+{
+add_new_line();
+}
+}
+if(((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))&&(key_pressed(KEY_A)))
+{
+highlight_all();
+}
+if(((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))&&(key_pressed(KEY_C)))
+{
+copy_highlighted();
+}
+if(key_pressed(KEY_LEFT))
+{
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+highlight_left();
+return;
+}
+if((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))
+{
+move_word_left();
+return;
+}
+move_left();
+}
+if(key_pressed(KEY_RIGHT))
+{
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+highlight_right();
+return;
+}
+if((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))
+{
+move_word_right();
+return;
+}
+move_right();
+}
+if(key_pressed(KEY_UP))
+{
+if(multiline==false)
+{
+return;
+}
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+highlight_up();
+}
+else
+{
+previous_line();
+}
+}
+if(key_pressed(KEY_DOWN))
+{
+if(multiline==false)
+{
+return;
+}
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+highlight_down();
+}
+else
+{
+next_line();
+}
+}
+if(key_pressed(KEY_HOME))
+{
+if((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL))||(multiline==false))
+{
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+highlight_to_field_start();
+}
+else
+{
+field_start();
+}
+}
+}
+if(key_pressed(KEY_END))
+{
+if((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL))||(multiline==false))
+{
+if((key_down(KEY_LSHIFT))||(key_down(KEY_RSHIFT)))
+{
+highlight_to_field_end();
+}
+else
+{
+field_end();
+}
+}
+}
+}
+if(type==ct_button)
+{
+if(key_pressed(KEY_SPACE))
+{
+pressed=true;
+}
+}
+if(type==ct_list)
+{
+if(list_length==-1)
+{
+return;
+}
+if(key_pressed(KEY_SPACE))
+{
+if((list_position==-1)||(!list_multiselect))
+{
+return;
+}
+if(list[list_position].checked)
+{
+list[list_position].checked=false;
+speak("Não marcado", true);
+}
+else
+{
+list[list_position].checked=true;
+speak("Marcado", true);
+}
+}
+if((((key_down(KEY_LCONTROL))||(key_down(KEY_RCONTROL)))&&(key_pressed(KEY_A)))&&(list_multiselect))
+{
+for(int counter=0; counter<=list_length; counter++)
+{
+list[counter].checked=true;
+}
+speak("Todos os itens selecionados", true);
+}
+if(key_pressed(KEY_UP))
+{
+if(list_position<=0)
+{
+return;
+}
+list_position--;
+speak(list[list_position].item,true);
+if(list[list_position].checked)
+{
+speak("Marcado", false);
+}
+}
+if(key_pressed(KEY_DOWN))
+{
+if(list_position>=list_length)
+{
+return;
+}
+list_position++;
+speak(list[list_position].item,true);
+if(list[list_position].checked)
+{
+speak("Marcado", false);
+}
+}
+}
+if(type==ct_checkbox)
+{
+if((key_pressed(KEY_SPACE))&&(read_only==false))
+{
+checkbox_toggle();
+}
+}
+if(type==ct_progress)
+{
+if(speak_interval==0)
+{
+return;
+}
+if(progress_time.elapsed>=speak_interval)
+{
+progress_time.restart();
+if(progress==100)
+{
+progress_time.pause();
+}
+if(focused==true)
+{
+speak_progress();
+}
+}
+}
+}
+
+void highlight_left()
+{
+int orig_sel_length=sel_length;
+if(sel_start<=0)
+{
+return;
+}
+if(sel_length==0)
+{
+sel_highlight=sel_start;
+}
+sel_start--;
+if(sel_highlight>sel_start)
+{
+sel_length=sel_highlight-sel_start;
+}
+else
+{
+sel_length=sel_start-sel_highlight;
+}
+if(orig_sel_length>=sel_length)
+{
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true)+" "+highlight_unselection_speech_text,true);
+}
+else
+{
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true)+" "+highlight_selection_speech_text,true);
+}
+}
+
+void highlight_right()
+{
+int orig_sel_length=sel_length;
+if(sel_start==text.length())
+{
+return;
+}
+if(sel_length==0)
+{
+sel_highlight=sel_start;
+}
+sel_start++;
+if(sel_highlight>sel_start)
+{
+sel_length=sel_highlight-sel_start;
+}
+else
+{
+sel_length=sel_start-sel_highlight;
+}
+if(sel_start==text.length())
+{
+speak("Em branco",true);
+}
+else
+{
+if(orig_sel_length>=sel_length)
+{
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true)+" "+highlight_unselection_speech_text,true);
+}
+else
+{
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true)+" "+highlight_selection_speech_text,true);
+}
+}
+}
+
+void next_line()
+{
+if(sel_start==text.length())
+{
+return;
+}
+for(int counter=sel_start; counter<text.length(); counter++)
+{
+if(counter<0)
+{
+continue;
+}
+if(text[counter]!="\n")
+{
+continue;
+}
+sel_start=counter+1;
+speak(read_line(sel_start),true);
+break;
+}
+}
+
+void previous_line()
+{
+bool found_end=false;
+int counter;
+int start;
+int end;
+if(sel_start<=0)
+{
+return;
+}
+for(counter=sel_start-1; counter>=0; counter--)
+{
+if(counter==text.length())
+{
+continue;
+}
+if(counter>text.length())
+{
+sel_start=0;
+speak(read_line(sel_start),true);
+break;
+}
+if((counter==0)||(counter>text.length()))
+{
+sel_start=0;
+speak(read_line(sel_start),true);
+break;
+}
+if(text[counter]!="\r")
+{
+continue;
+}
+if(text[counter]=="\r")
+{
+if(!found_end)
+{
+end=counter-1;
+found_end=true;
+}
+else
+{
+sel_start=counter+2;
+speak(read_line(sel_start),true);
+break;
+}
+}
+}
+}
+
+void highlight_all()
+{
+sel_start=text.length();
+sel_highlight=0;
+sel_length=text.length();
+speak(text+" "+highlight_selection_speech_text,true);
+}
+
+void add(string character)
+{
+string new_text="";
+if((max_length>0)&&(text.length()>=max_length))
+{
+return;
+}
+if(sel_start==-1)
+{
+sel_start=0;
+}
+for(int counter=0; counter<sel_start; counter++)
+{
+new_text+=text[counter];
+}
+new_text+=character;
+for(int counter=sel_start; counter<text.length(); counter++)
+{
+new_text+=text[counter];
+}
+if(read_only==false)
+{
+text=new_text;
+sel_start++;
+sel_highlight=sel_start;
+}
+speak(input_box_speak(find_appropriate_character(character)),true);
+}
+
+void edit(string character)
+{
+if((max_length>0)&&(text.length()>max_length))
+{
+return;
+}
+if(text.length()==0)
+{
+return;
+}
+if(sel_start>=text.length())
+{
+return;
+}
+if(sel_start==-1)
+{
+sel_start=0;
+}
+if(read_only==false)
+{
+text[sel_start]=character;
+}
+speak(input_box_speak(find_appropriate_character(character)),true);
+}
+
+bool add_silent(string content, int position)
+{
+string new_text="";
+if((position<0)||(position>text.length()))
+{
+return false;
+}
+if(position==text.length())
+{
+new_text=text+content;
+if((max_length>0)&&(new_text.length()>max_length))
+{
+return false;
+}
+text=new_text;
+return true;
+}
+for(int counter=0; counter<position; counter++)
+{
+new_text+=text[counter];
+}
+new_text+=content;
+for(int counter=position; counter<text.length(); counter++)
+{
+new_text+=text[counter];
+}
+if((max_length>0)&&(new_text.length()>max_length))
+{
+return false;
+}
+text=new_text;
+return true;
+}
+
+bool edit_silent(string content, int position, int edit_mode)
+{
+if(edit_mode==edit_mode_replace)
+{
+return replace_text(content, position);
+}
+if(edit_mode==edit_mode_trim_to_length)
+{
+return trim_to_length(content, position);
+}
+if(edit_mode==edit_mode_append_to_end)
+{
+return append_text(content, position);
+}
+return false;
+}
+
+bool replace_text(string content, int position)
+{
+if(position>=text.length())
+{
+return false;
+}
+if(position==0)
+{
+if((max_length>0)&&(content.length()>max_length))
+{
+return false;
+}
+text=content;
+return true;
+}
+string new_text=string_left(text, position);
+new_text+=content;
+if((max_length>0)&&(new_text.length()>max_length))
+{
+return false;
+}
+text=new_text;
+return true;
+}
+
+bool trim_to_length(string content, int position)
+{
+if(position>=text.length())
+{
+return false;
+}
+for(int counter=position; counter<text.length(); counter++)
+{
+if(content=="")
+{
+break;
+}
+text[counter]=content[0];
+content=string_trim_left(content, 1);
+}
+return true;
+}
+
+bool append_text(string content, int position)
+{
+if(position>=text.length())
+{
+return false;
+}
+if((position==0)&&(content.length()>text.length()))
+{
+if((max_length>0)&&(content.length()>max_length))
+{
+return false;
+}
+text=content;
+return true;
+}
+string new_text=text;
+for(int counter=position; counter<new_text.length(); counter++)
+{
+if(content=="")
+{
+break;
+}
+new_text[counter]=content[0];
+content=string_trim_left(content, 1);
+}
+new_text+=content;
+if((max_length>0)&&(new_text.length()>max_length))
+{
+return false;
+}
+text=new_text;
+return true;
+}
+
+void copy_highlighted()
+{
+string copy_text="";
+if(sel_length==0)
+{
+speak("Nada selecionado",true);
+return;
+}
+if(sel_highlight>sel_start)
+{
+for(int counter=sel_start; counter<=sel_highlight; counter++)
+{
+if(counter==text.length())
+{
+continue;
+}
+copy_text+=text[counter];
+}
+}
+else
+{
+for(int counter=sel_highlight; counter<=sel_start; counter++)
+{
+if(counter==text.length())
+{
+continue;
+}
+copy_text+=text[counter];
+}
+}
+speak("Copiado: "+copy_text,true);
+clipboard_copy_text(copy_text);
+}
+
+void cut_highlighted()
+{
+string copy_text="";
+if(read_only==true)
+{
+speak("Não é possível cortar a partir de uma caixa de edição.",true);
+return;
+}
+if(sel_length==0)
+{
+speak("Nada selecionado",true);
+return;
+}
+if(sel_highlight>sel_start)
+{
+for(int counter=sel_start; counter<=sel_highlight; counter++)
+{
+if(counter==text.length())
+{
+continue;
+}
+copy_text+=text[counter];
+}
+}
+else
+{
+for(int counter=sel_highlight; counter<=sel_start; counter++)
+{
+if(counter==text.length())
+{
+continue;
+}
+copy_text+=text[counter];
+}
+}
+speak("Cortar: "+copy_text,true);
+clipboard_copy_text(copy_text);
+delete_highlighted(0, false);
+}
+
+void paste_text()
+{
+string paste=clipboard_read_text();
+string[]@ paste_single=string_split(paste, "\r\n", false);
+if(!multiline)
+{
+paste=paste_single[0];
+}
+string new_text="";
+if(paste=="")
+{
+speak("Não há nada na área de transferência para colar.",true);
+return;
+}
+if(sel_start<=0)
+{
+text=paste+text;
+speak("Colado: "+text,true);
+return;
+}
+if(sel_start>=text.length())
+{
+text+=paste;
+speak("Colado: "+text,true);
+return;
+}
+for(int counter=0; counter<sel_start; counter++)
+{
+new_text+=text[counter];
+}
+new_text+=paste;
+for(int counter=sel_start; counter<text.length(); counter++)
+{
+new_text+=text[counter];
+}
+sel_start=-1;
+text=new_text;
+speak("Colado: "+paste,true);
+}
+
+void delete_highlighted()
+{
+delete_highlighted(0);
+}
+
+void delete_highlighted(int from_start)
+{
+delete_highlighted(from_start,true);
+}
+
+void delete_highlighted(int from_start, bool speak_deleted)
+{
+if((text=="")||(read_only==true))
+{
+return;
+}
+string new_text="";
+string delete_text="";
+int delete_start;
+int delete_end;
+if(sel_length==0)
+{
+if(from_start==0)
+{
+delete_start=sel_start-1;
+}
+else
+{
+delete_start=sel_start;
+}
+if((delete_start<0)||(delete_start>=text.length()))
+{
+return;
+}
+if((text[delete_start]!="\r")&&(text[delete_start]!="\n"))
+{
+delete_end=delete_start;
+}
+if(text[delete_start]=="\r")
+{
+delete_end=delete_start+1;
+}
+if(text[delete_start]=="\n")
+{
+delete_start--;
+delete_end=delete_start+1;
+}
+}
+else
+{
+if(sel_highlight>sel_start)
+{
+delete_start=sel_start;
+delete_end=sel_highlight;
+}
+else
+{
+delete_start=sel_highlight;
+delete_end=sel_start;
+}
+}
+for(int counter=0; counter<text.length(); counter++)
+{
+if((counter>=delete_start)&&(counter<=delete_end))
+{
+delete_text+=text[counter];
+continue;
+}
+new_text+=text[counter];
+}
+if(speak_deleted==true)
+{
+if((delete_text.length()==1)||(delete_text=="\r\n"))
+{
+speak(input_box_speak(find_appropriate_character(delete_text))+" "+delete_speech_text,true);
+}
+else
+{
+speak(delete_text+" "+delete_speech_text,true);
+}
+}
+text=new_text;
+if(from_start==0)
+{
+sel_start-=(sel_length+1);
+sel_highlight=sel_start;
+sel_length=0;
+}
+if(sel_start>text.length())
+{
+sel_start=text.length();
+}
+}
+
+void move_left()
+{
+sel_length=0;
+if(sel_start<=0)
+{
+return;
+}
+sel_start--;
+sel_highlight=sel_start;
+if(text[sel_start]=="\r")
+{
+sel_start--;
+sel_highlight=sel_start;
+}
+if(text[sel_start]=="\n")
+{
+speak(input_box_speak(find_appropriate_character("\r\n"), true),true);
+sel_start--;
+sel_highlight=sel_start;
+}
+else
+{
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true),true);
+}
+}
+
+void move_right()
+{
+sel_length=0;
+if(sel_start==text.length())
+{
+return;
+}
+sel_start++;
+sel_highlight=sel_start;
+if(sel_start==text.length())
+{
+speak("Em branco",true);
+}
+else
+{
+if(text[sel_start]=="\n")
+{
+sel_start++;
+sel_highlight=sel_start;
+}
+if(sel_start<text.length()&&text[sel_start]=="\r")
+{
+speak(input_box_speak(find_appropriate_character("\r\n"), true),true);
+sel_start++;
+sel_highlight=sel_start;
+}
+else if(sel_start<text.length())
+{
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true),true);
+}
+}
+}
+
+void add_new_line()
+{
+if(multiline==false)
+{
+return;
+}
+add("\r\n");
+sel_start+=2;
+speak("Linha em branco",true);
+}
+
+string type_to_name()
+{
+string name;
+if(type==ct_button)
+{
+name="Botão";
+}
+if(type==ct_list)
+{
+name="Lista";
+}
+if(type==ct_input)
+{
+if(multiline==false)
+{
+name="Campo de texto";
+}
+if(multiline==true)
+{
+name="Área de texto";
+}
+if(password_mask!="")
+{
+name="Campo de senha";
+}
+}
+if(type==ct_checkbox)
+{
+name="";
+}
+if(type==ct_progress)
+{
+name="Barra de progresso";
+}
+if(type==ct_status_bar)
+{
+name="Barra de status";
+}
+if(enabled==false)
+{
+name="Desativado "+name;
+}
+if(read_only==true)
+{
+name="Read Only "+name;
+}
+return name;
+}
+
+string input_box_speak(string character)
+{
+return input_box_speak(character, false);
+}
+
+string input_box_speak(string character, bool ignore_echo_flag)
+{
+if((echo_flag==textflag_none)&&(ignore_echo_flag==false))
+{
+return "";
+}
+if(character==" ")
+{
+return "Espaço";
+}
+if(character=="\r\n")
+{
+return "Linha em branco";
+}
+if(character=="-")
+{
+return "Ifem";
+}
+if(character==".")
+{
+return "Ponto";
+}
+if(character==",")
+{
+return "Vírgula";
+}
+if(character=="@")
+{
+return "Arroba";
+}
+if(character==">")
+{
+return "Maior";
+}
+if(character==";")
+{
+return "Ponto e vírgula";
+}
+if(character==":")
+{
+return "Dois pontos";
+}
+if(character=="'")
+{
+return "Apóstrofo";
+}
+if(character=="<")
+{
+return "Menor";
+}
+if(character=="_")
+{
+return "Ander line";
+}
+if(character=="+")
+{
+return "Mais";
+}
+if(character=="=")
+{
+return "Igual";
+}
+if(character=="!")
+{
+return "Exclamação";
+}
+if(character=="\"")
+{
+return "Raiz";
+}
+if(character=="\\")
+{
+return "Barra invertida";
+}
+if(character=="/")
+{
+return "Barra";
+}
+if(character=="£")
+{
+return "Pounds";
+}
+if(character=="$")
+{
+return "Cifrão";
+}
+if(character=="%")
+{
+return "Porcento";
+}
+if(character=="^")
+{
+return "Carret";
+}
+if(character=="&")
+{
+return "E";
+}
+if(character=="*")
+{
+return "Asterisco";
+}
+if(character=="(")
+{
+return "Abre parênteses";
+}
+if(character==")")
+{
+return "Fecha parênteses";
+}
+if(character=="[")
+{
+return "Abre colchetes";
+}
+if(character=="]")
+{
+return "Fecha colchetes";
+}
+if(character=="{")
+{
+return "Abre chave";
+}
+if(character=="}")
+{
+return "Fecha chave";
+}
+if(character=="|")
+{
+return "Barra vertical";
+}
+if(character=="?")
+{
+return "Interrogação";
+}
+if(character=="`")
+{
+return "Grave";
+}
+if(character=="¬")
+{
+return "Não";
+}
+if(character=="#")
+{
+return "#";
+}
+if(character=="~")
+{
+return "Til";
+}
+if(string_is_alphanumeric(character))
+{
+if(string_is_upper_case(character))
+{
+return character + " Maiúsculo";
+}
+else
+{
+return character;
+}
+}
+return "";
+}
+
+void checkbox_toggle()
+{
+if(checked==true)
+{
+speak("Não marcado",true);
+checked=false;
+}
+else
+{
+speak("Marcado",true);
+checked=true;
+}
+}
+
+string find_appropriate_character(string original_character)
+{
+if(password_mask=="")
+{
+return original_character;
+}
+else
+{
+return password_mask;
+}
+}
+
+void speak_progress()
+{
+if(beeping_progress)
+{
+beep_progress();
+return;
+}
+speak_progress(true);
+}
+
+void speak_progress(bool interrupt)
+{
+speak(""+progress+" "+percentage_speech_text,interrupt);
+}
+
+void beep_progress()
+{
+string frequency="";
+double freq=progress;
+freq=power(2,double((freq+1)/100*6));
+freq*=55;
+frequency=freq;
+beep.reset();
+beep.waveform_type = 4;
+beep.freq_ms(frequency,40);
+@bar=beep.write_wave_sound();
+if(!bar.active)
+{
+speak_progress(true);
+return;
+}
+bar.play();
+}
+
+string read_line(int position)
+{
+string temp="";
+for(int counter=position; counter<text.length(); counter++)
+{
+if(text[counter]!="\r")
+{
+temp+=text[counter];
+}
+else
+{
+break;
+}
+}
+if(temp=="")
+{
+return "Linha em branco";
+}
+return temp;
+}
+
+void line_start()
+{
+}
+
+void line_end()
+{
+}
+
+void move_word_left()
+{
+bool found_end=false;
+int counter;
+int start;
+int end;
+if(text=="")
+{
+return;
+}
+if(sel_start<=0)
+{
+return;
+}
+for(counter=sel_start; counter>=0; counter--)
+{
+if(counter==text.length())
+{
+continue;
+}
+if(counter>text.length())
+{
+break;
+}
+if((text[counter]!=" ")&&(text[counter]!="\n"))
+{
+continue;
+}
+if(text[counter]==" ")
+{
+if(found_end==false)
+{
+end=counter-1;
+found_end=true;
+}
+else
+{
+sel_start=counter+1;
+speak(read_word_from_position(sel_start),true);
+break;
+}
+}
+if(text[counter]=="\n")
+{
+if(found_end==false)
+{
+end=counter-2;
+found_end=true;
+}
+else
+{
+sel_start=counter+2;
+speak(read_word_from_position(sel_start),true);
+break;
+}
+}
+}
+if((counter==0)||(counter>text.length()))
+{
+sel_start=0;
+speak(read_word_from_position(sel_start),true);
+}
+}
+
+void move_word_right()
+{
+int counter;
+if(text=="")
+{
+return;
+}
+if((sel_start<0)||(sel_start>=text.length()))
+{
+return;
+}
+for(counter=sel_start; counter<text.length(); counter++)
+{
+if((text[counter]!=" ")&&(text[counter]!="\r"))
+{
+continue;
+}
+if(text[counter]==" ")
+{
+sel_start=counter+1;
+speak(read_word_from_position(sel_start),true);
+break;
+}
+if(text[counter]=="\r")
+{
+sel_start=counter+2;
+speak(read_word_from_position(sel_start),true);
+break;
+}
+}
+if(counter==text.length()-1)
+{
+sel_start=text.length();
+speak("Em branco",true);
+}
+}
+
+void field_start()
+{
+sel_start=0;
+if(text.length()==0)
+{
+return;
+}
+speak(input_box_speak(find_appropriate_character(text[sel_start]), true),true);
+}
+
+void field_end()
+{
+if(text.length()==0)
+{
+return;
+}
+sel_start=text.length();
+speak("Em branco",true);
+}
+
+string read_word_from_position(int position)
+{
+string temp="";
+for(int counter=position; counter<text.length(); counter++)
+{
+if((text[counter]!=" ")&&(text[counter]!="\r"))
+{
+temp+=text[counter];
+}
+else
+{
+break;
+}
+}
+return temp;
+}
+
+void highlight_to_field_start()
+{
+string hl_text="";
+if((sel_start<=0)||(sel_start>text.length()))
+{
+return;
+}
+for(int counter=sel_start; counter>=0; counter--)
+{
+if(counter>text.length())
+{
+break;
+}
+if(counter==text.length())
+{
+continue;
+}
+hl_text+=text[counter];
+}
+sel_highlight=sel_start;
+sel_start=0;
+sel_length=sel_start+1;
+speak(string_reverse(hl_text)+" "+highlight_selection_speech_text,true);
+}
+
+void highlight_to_field_end()
+{
+string hl_text="";
+if(sel_start==text.length())
+{
+return;
+}
+for(int counter=sel_start; counter<text.length(); counter++)
+{
+hl_text+=text[counter];
+}
+sel_highlight=sel_start;
+sel_start=text.length();
+sel_length=sel_start-sel_highlight;
+speak(hl_text+" "+highlight_selection_speech_text,true);
+}
+
+void highlight_to_word_start()
+{
+}
+
+void highlight_to_word_end()
+{
+}
+
+void highlight_to_line_start()
+{
+}
+
+void highlight_to_line_end()
+{
+}
+
+void highlight_up()
+{
+}
+
+void highlight_down()
+{
+}
+
+void highlight_by_position(int start, int end)
+{
+sel_highlight=start;
+sel_start=end;
+}
+
+bool speak(string text, bool interrupt)
+{
+if((speech_output<=0)||(speech_output>4))
+{
+if(interrupt)
+{
+return ui_speech.speak_interrupt(text);
+}
+return ui_speech.speak(text);
+}
+if(interrupt)
+{
+return screen_reader_speak_interrupt(speech_output, text);
+}
+return screen_reader_speak(speech_output, text);
+}
+}
+
+class list_item
+{
+string item;
+bool checked;
+
+list_item()
+{
+item="";
+checked=false;
+}
+}

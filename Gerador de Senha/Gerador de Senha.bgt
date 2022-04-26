@@ -1,0 +1,55 @@
+/*
+*Gerador de senhas
+*Escrito por DJT
+*Eu não me responsabilizo pelo uso do script. Use por sua conta e risco.
+*/
+#include"fale.bgt"
+#include "form.bgt"
+/*Sintaxes*/
+audio_form form;//Variável usada para a classe de formulários
+string minlength;//No coments
+string maxlength;//Máximo de caractéres da senha
+/*Funções*/
+void main(){
+setform();//Função de outra classe
+form.create_window("Gerador de Senhas", true, false);
+//int mins=form.create_input_box("Mínimo de caractéres da senha", minlength, "", 0, false, true);
+int maxs=form.create_input_box("Máximo de caractéres da senha", maxlength, "", 0, false, true);//Campo que pede o tamanho da senha pelo usuário
+int gerar=form.create_button("Gerar senha");//Botão para gerar a senha
+int cancel=form.create_button("Fechar", false, true);//Botão para fechar o Gerador
+form.focus(maxs);//Focalizar no campo da senha quando abrir
+while(true)
+{
+form.monitor();//Monitorização do formulário
+//minlength=form.get_text(mins);
+maxlength=form.get_text(maxs);//Armazena na string o que foi digitado
+if(form.is_pressed(cancel)) exit();
+if(form.is_pressed(gerar)){//Se clicou em gerar senha
+//int a=string_to_number(minlength);
+int b=string_to_number(maxlength);//Passa para número o que foi digitado no campo de texto
+if(b==0){//Se digitou letras, não digitou nada ou o número 0
+alert("Gerador de Senhas", "Sintaxe de senha inválida.");
+exit();
+}
+//Gerar senha
+int p1=question("Gerador de Senha", "A senha conterá números?");//Campo com sim e não
+int p2=question("Gerador de Senha", "A senha conterá letras maiúsculas?");//Campo com sim e não
+int p3=question("Gerador de Senha", "A senha conterá címbolos especiais?");//Campo com sim e não
+string especiais="\"!@#$%¨&*()_+|,.;<>:[]~´{}^`";//Símbolos que conterá na senha
+string minusculas="abcdefghijklmnopqrstuvxwyz";//Letras minúsculas
+string maiusculas="ABCDEFGHIJKLMNOPQRSTUVXWYZ";//Letras maiúsculas
+string numeros="0123456789";//Números
+string stringsenha=minusculas;//Cadeia de caracteres da senha, começados pelas letras miúsculasn
+if(p1==1) stringsenha+=numeros;
+if(p2==1) stringsenha+=maiusculas;
+if(p3==1) stringsenha+=especiais;
+string senhaf;//Senha final
+for(uint i=0; i<b; i++)
+{
+senhaf+=stringsenha[random(0, stringsenha.length()-1)];
+}
+clipboard_copy_text(senhaf);//Copiando o resultado 'final'
+alert("Gerador de Senhas", "Senha gerada e copiada para a área de transferência: "+senhaf);
+}
+}
+}
