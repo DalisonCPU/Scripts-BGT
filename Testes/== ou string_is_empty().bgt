@@ -1,0 +1,17 @@
+string j;
+void main(){
+timer t;
+show_game_window("aaa");
+t.restart();
+for(uint i=0;i<100000;i++){
+if(j.is_empty()){
+}
+}
+alert(t.elapsed, "");
+t.restart();
+for(uint i=0;i<100000;i++){
+if(j==""){
+}
+}
+alert(t.elapsed, "");
+}

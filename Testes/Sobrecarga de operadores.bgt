@@ -1,0 +1,31 @@
+class Nome{
+string nome;
+int num;
+Nome(){
+this.nome="";
+this.num=0;
+}
+Nome(string nome, int num){
+this.nome=nome;
+this.num=num;
+}
+int opCmp(Nome@ n){
+if(this.num<n.num)return -1;
+if(this.num==n.num)return 0;
+return 1;
+}
+}
+void main(){
+Nome@[] nomes;
+string l="0:hades 1:davi 11:carol 3:diego 10:igor 7:vagner 4:kimberlin 12:tião 15:din 100:lugaid";
+string[] k=string_split(l, " ", false);
+for(uint i=0;i<k.length;i++){
+string[] kk=string_split(k[i], ":", false);
+Nome n(kk[1], string_to_number(kk[0]));
+nomes.insert_last(n);
+}
+nomes.sort_descending();
+for(uint i=0;i<nomes.length;i++){
+alert(nomes[i].nome+" "+nomes[i].num, "");
+}
+}
