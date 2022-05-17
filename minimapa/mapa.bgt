@@ -1,0 +1,27 @@
+/*Ya que entiendes Portugués, comentaré en portugués el codigo*/
+#include"sound_pool.bgt"//biblioteca sound_pool
+sound_pool p;//declaração do sound_pool, à variável p
+vector andar(1, 0);//um vetor inicialmente definido em 1x, e 0 y
+int som;//uma variável int que armazenará no futuro o número do slot onde o som reproduzindo está.
+int minimoy=0, maximoy=100;//y mínimo do som 0, e vai tocar até o 100, maximoy
+//Para que  o nvda fale, precisa colocar nvdacontrollerclient32.dll na pasta do script.
+void main(){//função principal
+p.max_distance=200;
+p.volume_step=0.3;
+p.pan_step=0.5;
+som=p.play_2d("music.ogg", andar.x, andar.y, 50, 0, true);//a função p.play_2d retorna o número do slot, e estamos guardando ele na variável som, o nome do arquivo é music.ogg, inicialmente nas coordenadas 1 0 do vetor andar, nas coordenadas 54 0 onde ele está posicionado atualmente, reproduzindo em loop.
+show_game_window("teste de mapa");//definimos um título
+while(true){//um loop infinito
+wait(5);//consumo de CPU
+if(key_pressed(KEY_ESCAPE))exit();//se pressionar esc fecha
+if(key_pressed(KEY_RIGHT)&&andar.x<200)andar.x++;//se posição x do jogador for menor que 200, então anda um pra direita
+if(key_pressed(KEY_LEFT)&&andar.x>1)andar.x--;//se posição x do jogador for maior que 1, anda um pra esquerda
+if(key_pressed(KEY_C)){//Para hablar coordenadas
+fale(andar.x+":"+andar.y);
+}
+p.update_listener_2d(andar.x, andar.y);
+}//fim do while
+}//fim do void main
+void fale(string msg){
+screen_reader_speak(NVDA, msg);
+}
