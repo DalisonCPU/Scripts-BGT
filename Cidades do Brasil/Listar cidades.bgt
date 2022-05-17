@@ -1,0 +1,66 @@
+#include"fale.bgt"
+#include"Cidades.db"
+void main(){
+string[] linhas=string_split(listacidades, "\r\n", false);
+for(uint i=0;i<linhas.length();i++){
+if(string_contains(linhas[i], "=", 1)>-1){
+string nomeestado=string_split(linhas[i], "=", false)[0];
+i++;
+string[] cidades;
+for(uint i2=i;i2<linhas.length();i2++){
+if(string_contains(linhas[i2], "}", 1)>-1){
+novo_estado(nomeestado, cidades);
+break;
+}
+cidades.insert_last(linhas[i2]);
+}
+}
+}
+show_game_window("Listar cidades");
+int contador1=0;
+fale(estados[0].nome);
+while(true){
+wait(5);
+if(key_pressed(KEY_ESCAPE))exit();
+if(key_pressed(KEY_UP)&&contador1>0){
+contador1--;
+fale(estados[contador1].nome);
+}
+if(key_pressed(KEY_DOWN)&&contador1<estados.length()-1){
+contador1++;
+fale(estados[contador1].nome);
+}
+if(key_pressed(KEY_RETURN)){
+fale("Navegando pelas cidades de "+estados[contador1].nome+".");
+int contador2=-1;
+while(true){
+wait(5);
+if(key_pressed(KEY_ESCAPE)){
+fale(estados[contador1].nome);
+break;
+}
+if(key_pressed(KEY_UP)&&contador2>0){
+contador2--;
+fale(estados[contador1].cidades[contador2]);
+}
+if(key_pressed(KEY_DOWN)&&contador2<estados[contador1].cidades.length()-1){
+contador2++;
+fale(estados[contador1].cidades[contador2]);
+}
+}
+}
+}
+}
+estado@[] estados;
+class estado{
+string[] cidades;
+string nome;
+estado(string nn, string[] cc){
+nome=nn;
+cidades=cc;
+}
+}
+void novo_estado(string nome, string[] cidades){
+estado e(nome, cidades);
+estados.insert_last(e);
+}
