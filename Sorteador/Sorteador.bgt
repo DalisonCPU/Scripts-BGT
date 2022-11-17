@@ -10,6 +10,9 @@ form.reset();
 setform();
 form.create_window("Sorteador", true);
 int t1=form.create_button("Adicionar lista de nomes");
+int t3=form.create_list("Modo de sorteio", 0);
+form.add_list_item(t3, "Individual",-1, true);
+form.add_list_item(t3, "Duplo",-1, true);
 int t2=form.create_button("Sortear");
 int cancel=form.create_button("Fechar", false, true);//Botão para fechar o Gerador
 instrumental.volume=-10;
@@ -39,7 +42,31 @@ if(listadenomes.length==0){
 alert("Opa", "Está faltando ser adicionado a lista de nomes que será sorteada.");
 }
 else{
+int qual=form.get_list_position(t3);
+if(qual==0){
 alert("Pronto!", "O nome sorteado foi "+listadenomes[random(0, listadenomes.length-1)]);
+}
+else{
+if(listadenomes.length%2!=0){
+alert("Não é possível porque o número é ímpar", "");
+continue;
+}
+string[] resultados;
+string[] l=listadenomes;
+while(l.length>0){
+int n=random(0, l.length-1);
+resultados.insert_last(l[n]);
+l.remove_at(n);
+}
+string final;
+while(resultados.length>0){
+final+=resultados[0]+" x "+resultados[1]+"\r\n";
+resultados.remove_at(0);
+resultados.remove_at(0);
+}
+clipboard_copy_text(final);
+alert("Pronto", "Nomes copiados para a àrea de transferência.");
+}
 }
 }
 }
